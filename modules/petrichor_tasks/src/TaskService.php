@@ -121,6 +121,9 @@ class TaskService {
     if (empty($values['title']) || empty($values['project_id'])) {
       throw new \InvalidArgumentException('title and project_id are required.');
     }
+    if (!empty($values['parent_id'])) {
+      $this->assertParentAllowed((int) $values['parent_id'], (int) $values['project_id']);
+    }
     $task = $this->storage()->create([
       'label' => $values['title'],
       'project' => (int) $values['project_id'],
@@ -168,6 +171,15 @@ class TaskService {
       $values['if_unchanged_since'] ?? NULL,
       'task',
     );
+    // Validated before anything is written: a rejected parent must not leave
+    // the other fields of a partial update already applied.
+    if (!empty($values['parent_id'])) {
+      $this->assertParentAllowed(
+        (int) $values['parent_id'],
+        (int) $task->get('project')->target_id,
+        $id,
+      );
+    }
     $map = [
       'title' => 'label',
       'status' => 'status',
@@ -193,6 +205,81 @@ class TaskService {
     }
     $task->save();
     return $this->stub($task);
+  }
+
+  /**
+   * Walk stop for the ancestor chain.
+   *
+   * The cycle check below cannot loop forever on its own — it carries a
+   * visited set — but a chain this deep is already meaningless as a subtask
+   * hierarchy, and refusing beats walking ten thousand rows to say so.
+   */
+  private const MAX_PARENT_DEPTH = 32;
+
+  /**
+   * Refuses a parent that would break the hierarchy.
+   *
+   * `parent` is an entity reference with no constraint behind it, and it is
+   * writable over MCP, so every rule worth having has to be enforced here.
+   * Two things can go wrong and neither is visible afterwards:
+   *
+   * - A parent in another project puts a subtask on a board its parent is not
+   *   on. `list_tasks` filtered by project then returns a task whose parent it
+   *   never mentions, and the board shows a card with no visible relationship.
+   * - A parent that is already a descendant creates a loop reachable from no
+   *   root. Both tasks drop out of every parent-filtered query and stay that
+   *   way until someone edits the database.
+   *
+   * @param int $parent_id
+   *   The proposed parent.
+   * @param int $project_id
+   *   The project the child belongs to.
+   * @param int|null $child_id
+   *   The task being re-parented, or NULL when creating — a task that does not
+   *   exist yet cannot be its own ancestor, so only the project check applies.
+   *
+   * @throws \InvalidArgumentException
+   *   If the parent is missing, not viewable, in another project, or would
+   *   close a cycle.
+   */
+  protected function assertParentAllowed(int $parent_id, int $project_id, ?int $child_id = NULL): void {
+    $parent = $this->storage()->load($parent_id);
+    // Same message for missing and unviewable, so an id probe cannot tell a
+    // task that does not exist from one the caller may not see.
+    if (!$parent || !$parent->access('view')) {
+      throw new \InvalidArgumentException(sprintf('Parent task %d not found.', $parent_id));
+    }
+    if ((int) $parent->get('project')->target_id !== $project_id) {
+      throw new \InvalidArgumentException(sprintf(
+        'Parent task %d belongs to a different project; a subtask must sit in the same project as its parent.',
+        $parent_id,
+      ));
+    }
+    if ($child_id === NULL) {
+      return;
+    }
+    if ($parent_id === $child_id) {
+      throw new \InvalidArgumentException(sprintf('Task %d cannot be its own parent.', $child_id));
+    }
+    // Walk up from the proposed parent: if the child appears anywhere above
+    // it, attaching would close the loop.
+    $seen = [];
+    $current = $parent_id;
+    $depth = 0;
+    while ($current !== NULL && !isset($seen[$current]) && $depth < self::MAX_PARENT_DEPTH) {
+      if ($current === $child_id) {
+        throw new \InvalidArgumentException(sprintf(
+          'Task %d is a descendant of task %d; re-parenting there would create a cycle.',
+          $parent_id,
+          $child_id,
+        ));
+      }
+      $seen[$current] = TRUE;
+      $node = $this->storage()->load($current);
+      $next = $node ? $node->get('parent')->target_id : NULL;
+      $current = $next ? (int) $next : NULL;
+      $depth++;
+    }
   }
 
   /**

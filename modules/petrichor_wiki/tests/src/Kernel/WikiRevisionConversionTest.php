@@ -215,7 +215,13 @@ class WikiRevisionConversionTest extends KernelTestBase {
     $this->container->get('state')->set('petrichor_wiki_pre_revision.active', FALSE);
     $this->refreshDefinitions();
 
-    require_once $this->root . '/modules/custom/petrichor/modules/petrichor_wiki/petrichor_wiki.install';
+    // Resolved through the extension list rather than hardcoded. The path
+    // depends on where the suite is checked out — 'modules/custom/petrichor'
+    // on drupal.org's CI, but 'modules/custom/<sitename>' under the local
+    // ddev-drupal-contrib harness, and anywhere at all in a real site. A
+    // literal path passes on exactly one of those.
+    $path = $this->container->get('extension.list.module')->getPath('petrichor_wiki');
+    require_once $this->root . '/' . $path . '/petrichor_wiki.install';
 
     $sandbox = [];
     $passes = 0;
