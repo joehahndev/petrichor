@@ -143,6 +143,16 @@ final class McpController extends ControllerBase {
           'text' => $text,
         ],
       ],
+      // No 'structuredContent'. Measured 2026-08-07 rather than assumed: the
+      // spec (2025-06-18) says a tool returning it SHOULD also return the
+      // serialized JSON in a text block for compatibility, so both go on the
+      // wire — list_projects went 677 -> 1,026 chars, 52% larger. The client
+      // then read `content[0].text` and ignored structuredContent, so the
+      // extra field bought nothing and cost half again per call.
+      //
+      // Worth re-testing when a client is known to prefer structuredContent
+      // AND to drop the duplicate text; until both are true this is a pure
+      // loss. See task 185.
       'isError' => FALSE,
     ];
   }
