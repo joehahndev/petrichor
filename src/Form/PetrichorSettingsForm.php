@@ -79,6 +79,18 @@ final class PetrichorSettingsForm extends ConfigFormBase {
       '#disabled' => !$installed,
     ];
 
+    $form['memory_policy'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('When an agent wants to record something'),
+      '#description' => $this->t('Agents can store facts — decisions, preferences, constraints — for later sessions. This controls what happens when one tries. Proposed memories are stored but invisible: recall and the project context bundle only ever return active ones, so nothing an agent recorded can influence a later session until you have seen it.'),
+      '#config_target' => 'petrichor.settings:memory_policy',
+      '#options' => [
+        'automatic' => $this->t('Record it — the memory is active and recallable immediately'),
+        'ask' => $this->t('Propose it — stored, but invisible until you confirm it (recommended)'),
+        'on_demand' => $this->t('Only when asked — agents are told not to record unless you say so'),
+      ],
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 

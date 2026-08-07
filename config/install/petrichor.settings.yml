@@ -2,3 +2,15 @@
 # how the host site looks. Immersion is opt-in, at
 # /admin/config/user-interface/petrichor.
 use_workspace_theme: false
+
+# What remember() does with a fact an agent decides is worth keeping.
+#
+# 'ask' is the default deliberately: a memory store that fills itself without
+# you noticing is the failure people regret. Proposed memories are really
+# stored — nothing is lost if the conversation ends — but recall() and the
+# context bundle only ever see 'active', so nothing surfaces until confirmed.
+#
+#   automatic  saved active, recallable immediately
+#   ask        saved proposed, invisible to recall until confirmed
+#   on_demand  agents are told not to record unless asked
+memory_policy: ask

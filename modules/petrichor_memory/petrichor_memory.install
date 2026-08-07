@@ -33,3 +33,34 @@ function petrichor_memory_schema(): array {
   ];
   return $schema;
 }
+
+/**
+ * Adds the 'proposed' status so remember() can hold a memory for review.
+ */
+function petrichor_memory_update_11001(): string {
+  $manager = \Drupal::entityDefinitionUpdateManager();
+  $field = $manager->getFieldStorageDefinition('status', 'petrichor_memory');
+  if (!$field) {
+    return 'No status field on petrichor_memory; nothing to update.';
+  }
+
+  // allowed_values does not change the column, so this is not a schema
+  // migration — it re-stores the definition so Drupal's status report does
+  // not flag the code and the database as disagreeing, and so any form built
+  // from the stored definition offers the new option.
+  $values = $field->getSetting('allowed_values');
+  if (isset($values['proposed'])) {
+    return 'The proposed status is already installed.';
+  }
+  $field->setSetting('allowed_values', [
+    'proposed' => t('Proposed'),
+    'active' => t('Active'),
+    'archived' => t('Archived'),
+  ]);
+  $manager->updateFieldStorageDefinition($field);
+
+  // Existing memories keep their status. Everything recorded before this
+  // update was recorded under the old always-active behaviour, and silently
+  // demoting it to 'proposed' would hide facts that sessions already rely on.
+  return 'Added the proposed memory status. Existing memories are unchanged.';
+}

@@ -111,6 +111,12 @@ class Memory extends PetrichorEntityBase {
       ->setRequired(TRUE)
       ->setDefaultValue('active')
       ->setSetting('allowed_values', [
+        // Proposed is a real stored state, not a UI hint. recall() and the
+        // context bundle both filter to 'active', so a proposed memory costs
+        // nothing and surfaces nowhere until somebody confirms it — which is
+        // what makes the 'ask' policy enforceable here rather than a request
+        // an agent may or may not honour.
+        'proposed' => t('Proposed'),
         'active' => t('Active'),
         'archived' => t('Archived'),
       ])

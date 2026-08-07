@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\petrichor_memory;
 
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -22,6 +23,7 @@ class MemoryService {
     protected Connection $database,
     protected AccountProxyInterface $currentUser,
     protected TimeInterface $time,
+    protected ConfigFactoryInterface $configFactory,
   ) {}
 
   /**
@@ -33,10 +35,21 @@ class MemoryService {
 
   /**
    * Stores a fact, project-scoped when a project id is given.
+   *
+   * The site's memory_policy decides whether the result is immediately
+   * recallable. The returned stub carries a `note` explaining what happened
+   * and what the caller should do about it — an agent should not have to know
+   * the policy in advance, or carry it between sessions, to behave correctly.
    */
   public function remember(array $values): array {
     if (empty($values['title']) || empty($values['fact'])) {
       throw new \InvalidArgumentException('title and fact are required.');
+    }
+    $policy = $this->policy();
+    if ($policy === 'on_demand' && empty($values['requested'])) {
+      throw new \InvalidArgumentException(
+        'This site records memories only when the user asks. If they did ask, call remember again with requested: true; otherwise suggest it and wait.'
+      );
     }
     $memory = $this->storage()->create([
       'label' => $values['title'],
@@ -44,13 +57,47 @@ class MemoryService {
       'project' => $values['project_id'] ?? NULL,
       'type' => $values['type'] ?? 'learning',
       'tags' => $values['tags'] ?? [],
-      'status' => 'active',
+      'status' => $policy === 'ask' ? 'proposed' : 'active',
     ]);
     if (!$memory->access('create')) {
       throw new \InvalidArgumentException('Not allowed to create memories.');
     }
     $memory->save();
-    return $this->stub($memory);
+
+    $stub = $this->stub($memory);
+    $stub['note'] = match ($policy) {
+      'ask' => 'Proposed, not yet active: it will not appear in recall or any project context until confirmed. Tell the user what you recorded and why, so they can confirm or discard it.',
+      default => 'Recorded and active: it will surface in future recalls for this scope.',
+    };
+    return $stub;
+  }
+
+  /**
+   * Confirms a proposed memory, making it recallable.
+   */
+  public function confirmMemory(int $id): array {
+    $memory = $this->storage()->load($id);
+    if (!$memory || !$memory->access('update')) {
+      throw new \InvalidArgumentException('Memory not found or not editable.');
+    }
+    if ($memory->get('status')->value !== 'proposed') {
+      throw new \InvalidArgumentException(sprintf(
+        'Memory %d is %s, not proposed; there is nothing to confirm.',
+        $id,
+        $memory->get('status')->value,
+      ));
+    }
+    $memory->set('status', 'active');
+    $memory->save();
+    return ['id' => (int) $memory->id(), 'status' => 'active'];
+  }
+
+  /**
+   * The site's memory policy: 'automatic', 'ask', or 'on_demand'.
+   */
+  protected function policy(): string {
+    $policy = (string) $this->configFactory->get('petrichor.settings')->get('memory_policy');
+    return in_array($policy, ['automatic', 'ask', 'on_demand'], TRUE) ? $policy : 'ask';
   }
 
   /**

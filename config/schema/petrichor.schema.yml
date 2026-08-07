@@ -5,3 +5,6 @@ petrichor.settings:
     use_workspace_theme:
       type: boolean
       label: 'Render the Petrichor workspace in the Petrichor theme'
+    memory_policy:
+      type: string
+      label: 'What remember() does with a new fact'
