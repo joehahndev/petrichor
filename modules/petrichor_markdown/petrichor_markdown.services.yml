@@ -1,0 +1,6 @@
+services:
+  # Empty on a markdown-only install; the filter then behaves exactly as it did
+  # before the seam existed.
+  petrichor_markdown.extension_registry:
+    class: Drupal\petrichor_markdown\MarkdownExtensionRegistry
+    arguments: [!tagged_iterator petrichor_markdown.extension_provider]

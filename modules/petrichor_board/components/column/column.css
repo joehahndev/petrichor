@@ -1,0 +1,164 @@
+/**
+ * @file
+ * Column shell, sticky header, and drop-target feedback.
+ *
+ * Same token posture as card.css: a petrichor_theme token first, a private
+ * `--petrichor-local-*` fallback second (currentColor mixes for colour, the theme's
+ * own numbers for space and radius). The block is repeated here rather than
+ * inherited from board.css so a host theme that renders a column on its own
+ * still gets a legible one.
+ */
+
+:where(.petrichor-board__column) {
+  --petrichor-local-pad: var(--petrichor-space-3, 1rem);
+  --petrichor-local-column-bg: color-mix(in sRGB, currentColor 5%, transparent);
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-board__column) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+  }
+}
+
+.petrichor-board__column {
+  display: flex;
+  overflow-y: auto;
+  flex-direction: column;
+  transition: border-color var(--petrichor-transition, 150ms ease);
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius-lg, 12px);
+  /* The page background, not the card surface: with the theme installed the
+     column recedes into the page and the cards are the only objects on it,
+     which is the point of the view. The border delineates it either way. */
+  background-color: var(--petrichor-bg, var(--petrichor-local-column-bg));
+  min-inline-size: 0;
+  /* Each column scrolls on its own so a 25-card To Do cannot push the page
+     down, and `contain` stops that scroll chaining into the document once the
+     column bottoms out. A host theme that gives the board a real full-height
+     shell can raise the cap with --petrichor-board-column-max; the dvh arm is
+     what keeps the board sane inside an ordinary page flow. */
+  max-block-size: var(--petrichor-board-column-max, max(20rem, calc(100dvh - 14rem)));
+  overscroll-behavior-block: contain;
+  /* Reserved gutter: a column that gained a scrollbar mid-drag would otherwise
+     narrow, and every card under the pointer would shift sideways with it. */
+  scrollbar-gutter: stable;
+}
+
+.petrichor-board__column-title {
+  position: sticky;
+  /* Above the cards scrolling underneath, and that is all it needs to clear:
+     the native drag image and the touch fallback ghost are both painted
+     outside this subtree. */
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  padding: var(--petrichor-local-pad) var(--petrichor-local-pad) var(--petrichor-space-2, 0.5rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border-block-end: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  /* `inherit` rather than a second var() chain: the header must be exactly the
+     column's own colour. With the theme installed that colour is opaque and
+     that is the end of it; without it the colour is a currentColor mix, which
+     is translucent by construction, so the blur is what stops cards reading
+     through the header as they scroll under it. */
+  background-color: inherit;
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-weight: 600;
+  inset-block-start: 0;
+  gap: var(--petrichor-space-2, 0.5rem);
+  backdrop-filter: blur(8px);
+}
+
+.petrichor-board__count {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.petrichor-board__cards {
+  /* Positioning context for the out-of-flow empty placeholder below. */
+  position: relative;
+  display: flex;
+  /* Fills the column so a drop below the last card still lands inside the
+     dropzone instead of on the column's dead space. */
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--petrichor-local-pad);
+  list-style: none;
+  transition: background-color var(--petrichor-transition, 150ms ease);
+  border-radius: var(--petrichor-radius, 6px);
+  gap: var(--petrichor-space-3, 1rem);
+  /* Keeps an empty column a usable drop target. */
+  min-block-size: 5rem;
+}
+
+/* Receptive column. Sortable moves the placeholder into whichever list the
+   pointer is over, so :has() on the ghost is the only drop-target signal
+   available without touching board.js; --grabbed gives the keyboard path the
+   same signal, because board.js moves the held card into the destination list
+   on every arrow press. Outline and fill only — a border here would resize the
+   list mid-drag and slide every slot under the pointer. */
+.petrichor-board__cards:has(.petrichor-card--ghost),
+.petrichor-board__cards:has(.petrichor-card--grabbed) {
+  outline: 2px dashed var(--petrichor-accent, currentColor);
+  outline-offset: -2px;
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+}
+
+.petrichor-board__column:has(.petrichor-card--ghost),
+.petrichor-board__column:has(.petrichor-card--grabbed) {
+  border-color: var(--petrichor-accent, currentColor);
+}
+
+.petrichor-board__empty {
+  /* Taken out of flow on purpose. The rule below hides this the instant a card
+     — including the drag ghost — enters the list, and if the placeholder
+     occupied space that toggle would yank ~80px out from under the pointer the
+     moment a drag crossed into an empty column, and put it back on leaving.
+     The list's own min-block-size already reserves the room. */
+  position: absolute;
+  /* Given a box and centred, so an empty column reads as somewhere a card can
+     go rather than as a stray line of text. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Stated because a host theme styling bare `li` would otherwise offset it. */
+  margin: 0;
+  padding: var(--petrichor-space-3, 1rem);
+  text-align: center;
+  pointer-events: none;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border: 1px dashed var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius, 6px);
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-style: italic;
+  inset: var(--petrichor-local-pad);
+  min-block-size: 4rem;
+}
+
+/* The placeholder is markup, not state: once a drop lands a card in this list
+   the server-rendered <li> is still there, so hide it rather than have board.js
+   manage it. The ghost is a card, so this fires the moment one is dragged in. */
+.petrichor-board__cards:has([data-petrichor-card]) .petrichor-board__empty {
+  display: none;
+}
+
+.petrichor-board__note {
+  margin: 0;
+  padding: 0 var(--petrichor-local-pad) var(--petrichor-local-pad);
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petrichor-board__column,
+  .petrichor-board__cards {
+    transition: none;
+  }
+}

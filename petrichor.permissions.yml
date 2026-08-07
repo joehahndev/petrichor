@@ -1,0 +1,16 @@
+administer petrichor:
+  title: 'Administer Petrichor PM'
+  description: 'Full access to all Petrichor entities and settings. Grants every operation INCLUDING delete (core checks the admin permission before the access handler runs). Never grant to agent roles — humans only.'
+  restrict access: true
+
+manage petrichor content:
+  title: 'Manage Petrichor PM content'
+  description: 'Create and edit projects, tasks, milestones, timesheets, ideas, and wiki pages. Does NOT include delete.'
+
+delete petrichor content:
+  title: 'Delete Petrichor PM content'
+  description: 'Hard-delete Petrichor entities. Never grant this to agent roles — the no-hard-delete guarantee is enforced here, transport-independently (MCP, JSON:API, UI alike).'
+  restrict access: true
+
+view petrichor content:
+  title: 'View Petrichor PM content'

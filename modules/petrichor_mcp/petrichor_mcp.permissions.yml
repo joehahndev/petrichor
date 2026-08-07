@@ -1,0 +1,4 @@
+access petrichor mcp:
+  title: 'Access the Petrichor MCP endpoint'
+  description: 'Allows an authenticated client (e.g. via basic auth) to call MCP tools. Tools still respect entity access.'
+  restrict access: true

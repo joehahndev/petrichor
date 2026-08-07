@@ -1,0 +1,5 @@
+entity.petrichor_memory.collection:
+  title: 'Memories'
+  route_name: entity.petrichor_memory.collection
+  parent: petrichor.dashboard
+  weight: 30

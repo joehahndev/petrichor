@@ -1,0 +1,78 @@
+/**
+ * @file
+ * Wiki links inside filtered markdown.
+ *
+ * Not an SDC: these anchors render inside filter output, where there is no
+ * component wrapper to hang a template on. Hence a plain library, attached by
+ * the filter result wherever a [[link]] was actually seen.
+ *
+ * Same convention as the board components — every colour reads a
+ * petrichor_theme token first and a literal second, because the theme is
+ * optional. The fallbacks mix from currentColor so the link adopts the host
+ * theme's palette instead of imposing one; the two that do not (wanted, so it
+ * reads as unwritten rather than merely different) are stated explicitly and
+ * flipped for dark mode.
+ *
+ * The `--petrichor-local-*` names are private: never part of the theme's token
+ * contract, only ever the fallback arm of a var() on a contract token.
+ */
+
+:where(.petrichor-wikilink) {
+  --petrichor-local-wikilink: currentColor;
+  --petrichor-local-wikilink-wanted: #a4251b;
+  --petrichor-local-wikilink-line: color-mix(in sRGB, currentColor 35%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-wikilink) {
+    --petrichor-local-wikilink-wanted: #ff9d90;
+    --petrichor-local-wikilink-line: color-mix(in sRGB, currentColor 45%, transparent);
+  }
+}
+
+.petrichor-wikilink {
+  text-decoration: underline;
+  color: var(--petrichor-link, var(--petrichor-local-wikilink));
+  /* Dotted rather than solid so a wiki link is distinguishable from an ordinary
+   * markdown link at a glance — the point of wiki-linking is knowing which
+   * references are internal. */
+  text-decoration-style: dotted;
+  text-decoration-color: var(--petrichor-border, var(--petrichor-local-wikilink-line));
+  text-underline-offset: 0.15em;
+}
+
+.petrichor-wikilink:hover,
+.petrichor-wikilink:focus-visible {
+  text-decoration-style: solid;
+}
+
+/**
+ * A page nobody has written yet.
+ *
+ * Deliberately still a link, and deliberately not styled as an error: it points
+ * at the add form with the title filled in, so clicking it is how the page gets
+ * written. The superscript marker carries the same meaning as the colour for
+ * anyone who cannot see the colour; the anchor also has a title attribute.
+ */
+.petrichor-wikilink--wanted {
+  color: var(--petrichor-danger, var(--petrichor-local-wikilink-wanted));
+  text-decoration-color: currentColor;
+}
+
+.petrichor-wikilink--wanted::after {
+  margin-inline-start: 0.1em;
+  content: "?";
+  vertical-align: super;
+  font-size: 0.75em;
+  line-height: 0;
+}
+
+/**
+ * Two or more pages share this title; the link goes to the oldest.
+ *
+ * Marked rather than hidden, because an ambiguous link is a KB-health problem
+ * the author should see in the body text where it occurs.
+ */
+.petrichor-wikilink--ambiguous {
+  text-decoration-style: wavy;
+}

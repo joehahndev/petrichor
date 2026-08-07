@@ -1,0 +1,8 @@
+# No board link: /pm/board/{petrichor_project} needs a project, so it is
+# reached from a project, not from the menu.
+petrichor_board.today:
+  title: 'Today'
+  description: 'Work that needs you now.'
+  route_name: petrichor_board.today
+  parent: petrichor.dashboard
+  weight: -5

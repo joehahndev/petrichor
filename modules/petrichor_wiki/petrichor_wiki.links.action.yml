@@ -1,0 +1,5 @@
+entity.petrichor_wiki_page.add_form:
+  route_name: entity.petrichor_wiki_page.add_form
+  title: 'Add wiki page'
+  appears_on:
+    - entity.petrichor_wiki_page.collection

@@ -1,0 +1,18 @@
+petrichor.dashboard:
+  path: '/pm'
+  defaults:
+    _controller: 'Drupal\petrichor\Controller\DashboardController::dashboard'
+    _title: 'Petrichor PM'
+  requirements:
+    _permission: 'view petrichor content'
+
+# Under /admin on purpose: AdminRouteSubscriber flags it _admin_route, so the
+# page that owns the workspace-theme switch always renders in the admin theme
+# and stays reachable even when the switch is wrong.
+petrichor.settings:
+  path: '/admin/config/user-interface/petrichor'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorSettingsForm'
+    _title: 'Petrichor PM'
+  requirements:
+    _permission: 'administer petrichor'

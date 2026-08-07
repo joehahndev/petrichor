@@ -1,0 +1,25 @@
+# PHPStan configuration for the Petrichor module suite.
+#
+# Shipped deliberately rather than left to the default: drupal.org's CI picks
+# up a project phpstan.neon automatically, so this file is what decides the
+# level the suite is held to, in the repository, reviewable, instead of
+# whatever the runner happens to default to.
+#
+# Level 1 matches Drupal contrib practice. The suite currently reports zero
+# errors at this level; raising it is a deliberate future change, not something
+# that should happen silently when a runner default moves.
+parameters:
+  level: 1
+  paths:
+    - .
+  excludePaths:
+    analyseAndScan:
+      # The '(?)' suffix marks these optional. Neither directory is committed,
+      # so on a clean checkout phpstan treats excluding them as a config error
+      # and fails the run before analysing a single line — which reads as
+      # "phpstan found problems" when it found none.
+      - vendor (?)
+      - node_modules (?)
+  # phpstan-drupal discovers the Drupal root on its own; setting drupal_root
+  # here is deprecated and emits a warning on every run.
+  reportUnmatchedIgnoredErrors: false

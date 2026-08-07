@@ -1,0 +1,5 @@
+entity.petrichor_task.collection:
+  title: 'Tasks'
+  route_name: entity.petrichor_task.collection
+  parent: petrichor.dashboard
+  weight: 5

@@ -1,0 +1,7 @@
+name: 'Petrichor Markdown'
+type: module
+description: 'Markdown text format backed by league/commonmark (HTML input escaped, unsafe links stripped).'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - drupal:filter

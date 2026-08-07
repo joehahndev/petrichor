@@ -1,0 +1,27 @@
+services:
+  petrichor_mcp.tool_registry:
+    class: Drupal\petrichor_mcp\McpToolRegistry
+    arguments: [!tagged_iterator petrichor_mcp.tool_provider]
+  petrichor_mcp.context:
+    class: Drupal\petrichor_mcp\ContextService
+    arguments:
+      - '@entity_type.manager'
+      - '@datetime.time'
+      # '@?' means "NULL if that service is not defined". These three
+      # submodules are optional, and the context bundle is expected to come
+      # back smaller rather than fail when one is absent. Promoting any of
+      # them to '@' would turn an optional submodule into a hard dependency
+      # and break the à-la-carte install.
+      - '@?petrichor_comments.service'
+      - '@?petrichor_memory.service'
+      - '@?petrichor_tasks.service'
+  petrichor_mcp.resources:
+    class: Drupal\petrichor_mcp\McpResources
+    arguments: ['@entity_type.manager']
+  petrichor_mcp.prompts:
+    class: Drupal\petrichor_mcp\McpPrompts
+  petrichor_mcp.context_tool_provider:
+    class: Drupal\petrichor_mcp\ContextToolProvider
+    arguments: ['@petrichor_mcp.context']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

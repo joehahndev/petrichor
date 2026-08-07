@@ -1,0 +1,7 @@
+petrichor_memory.settings:
+  path: '/admin/structure/petrichor/memory'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorEntitySettingsForm'
+    _title: 'Memory settings'
+  requirements:
+    _permission: 'administer petrichor'

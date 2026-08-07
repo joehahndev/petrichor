@@ -1,0 +1,56 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Board
+status: experimental
+description: 'Kanban board root: one column per task status, drag and keyboard reordering. The only component in the suite that ships JavaScript.'
+
+# Without this block the generated library core/components.petrichor_board--board
+# declares zero dependencies and Sortable / Drupal / once are undefined the
+# moment the board renders. Only `dependencies` may appear here: libraryOverrides
+# merges with array_merge(), so a js: or css: key would replace the
+# auto-discovered board.js / board.css entry wholesale instead of extending it.
+libraryOverrides:
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/sortable
+    - core/drupal.announce
+
+props:
+  type: object
+  required:
+    - project
+    - columns
+    - csrf_token
+  properties:
+    project:
+      type: object
+      title: Project
+      description: The project this board belongs to.
+      properties:
+        id:
+          type: integer
+          title: Project ID
+        title:
+          type: string
+          title: Project title
+    columns:
+      type: array
+      title: Columns
+      description: One entry per status, in TaskService::statusOptions() declaration order. Each entry is the `column` prop of petrichor_board:column.
+      items:
+        type: object
+    csrf_token:
+      type: string
+      title: CSRF token
+      description: 'Token for CsrfRequestHeaderAccessCheck::TOKEN_KEY, rendered into data-petrichor-csrf and sent back as the X-CSRF-Token header on every move.'
+    empty_text:
+      type: string
+      title: Empty column text
+      description: Shown in a column that holds no cards. Defaults to "Nothing here".
+      examples:
+        - 'Nothing here'
+
+slots:
+  header_actions:
+    title: Header actions
+    description: Controls rendered beside the project title — host sites inject buttons here. Never used by board.js.

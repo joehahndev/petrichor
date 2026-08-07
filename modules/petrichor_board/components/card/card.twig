@@ -1,0 +1,60 @@
+{#
+/**
+ * @file
+ * A single task card.
+ *
+ * data-petrichor-card, data-id, data-move-url, data-changed and tabindex="0"
+ * are a binding contract with board.js. data-changed in particular is echoed
+ * back to the server unmodified as if_unchanged_since, so it must never pass
+ * through a date filter.
+ */
+#}
+<li {{ attributes.addClass('petrichor-card')
+  .addClass(card.overdue ? 'petrichor-card--overdue')
+  .addClass(card.blocked ? 'petrichor-card--blocked')
+  .addClass('petrichor-card--' ~ card.priority)
+  .setAttribute('data-petrichor-card', '')
+  .setAttribute('data-id', card.id)
+  .setAttribute('data-move-url', card.move_url)
+  .setAttribute('data-changed', card.changed)
+  .setAttribute('tabindex', '0') }}>
+
+  <a class="petrichor-card__title" href="{{ card.url }}">{{ card.title }}</a>
+
+  {% if show_project|default(false) and card.project_title %}
+    <p class="petrichor-card__project">{{ card.project_title }}</p>
+  {% endif %}
+
+  {% set has_meta = card.blocked or card.due_date or card.reason or card.assignee_name or card.priority in ['high', 'urgent'] %}
+  {% if has_meta %}
+  <p class="petrichor-card__meta">
+    {# First, and always a word: blocked is the one state that changes whether
+       you can act on this card at all, and it must never be colour alone. #}
+    {% if card.blocked %}
+      <span class="petrichor-card__blocked">
+        {{ 'Blocked'|t }}{% if card.blocked_note %}: {{ card.blocked_note }}{% endif %}
+      </span>
+    {% endif %}
+    {% if card.due_date %}
+      {# Printed as the stored Y-m-d string on purpose: `overdue` already
+         carries the only comparison anyone needs, and reformatting would mean
+         building a date object in the template. #}
+      <span class="petrichor-card__due">
+        {% if card.overdue %}{{ 'Overdue'|t }}{% else %}{{ 'Due'|t }}{% endif %}
+        <time datetime="{{ card.due_date }}">{{ card.due_date }}</time>
+      </span>
+    {% endif %}
+    {% if card.priority in ['high', 'urgent'] %}
+      <span class="petrichor-card__priority">{{ card.priority }}</span>
+    {% endif %}
+    {% if card.reason %}
+      <span class="petrichor-card__reason">{{ card.reason }}</span>
+    {% endif %}
+    {% if card.assignee_name %}
+      <span class="petrichor-card__assignee">{{ card.assignee_name }}</span>
+    {% endif %}
+  </p>
+  {% endif %}
+
+  {% block card_footer %}{% endblock %}
+</li>

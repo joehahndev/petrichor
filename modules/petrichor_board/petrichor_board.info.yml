@@ -1,0 +1,9 @@
+name: 'Petrichor Board'
+type: module
+description: 'Kanban board and Today view. Drag-and-drop columns over the task entity, with manual card order kept in a side table so reordering never touches a task.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_projects
+  - petrichor:petrichor_tasks

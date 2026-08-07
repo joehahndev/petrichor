@@ -1,0 +1,9 @@
+services:
+  petrichor_projects.service:
+    class: Drupal\petrichor_projects\ProjectService
+    arguments: ['@entity_type.manager']
+  petrichor_projects.tool_provider:
+    class: Drupal\petrichor_projects\ProjectToolProvider
+    arguments: ['@petrichor_projects.service']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

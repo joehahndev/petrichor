@@ -1,0 +1,9 @@
+services:
+  petrichor_timesheets.service:
+    class: Drupal\petrichor_timesheets\TimesheetService
+    arguments: ['@entity_type.manager']
+  petrichor_timesheets.tool_provider:
+    class: Drupal\petrichor_timesheets\TimesheetToolProvider
+    arguments: ['@petrichor_timesheets.service']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

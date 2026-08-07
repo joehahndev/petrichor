@@ -1,0 +1,4 @@
+archive petrichor memories:
+  title: 'Archive Petrichor memories (forget tool)'
+  description: 'Allows the MCP forget tool. Maintainer-tier agents only — contributors can remember and recall but not remove from the active set.'
+  restrict access: true

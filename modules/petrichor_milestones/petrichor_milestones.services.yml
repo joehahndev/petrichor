@@ -1,0 +1,9 @@
+services:
+  petrichor_milestones.service:
+    class: Drupal\petrichor_milestones\MilestoneService
+    arguments: ['@entity_type.manager']
+  petrichor_milestones.tool_provider:
+    class: Drupal\petrichor_milestones\MilestoneToolProvider
+    arguments: ['@petrichor_milestones.service']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

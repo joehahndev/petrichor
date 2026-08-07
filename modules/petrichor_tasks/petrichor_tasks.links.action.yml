@@ -1,0 +1,5 @@
+entity.petrichor_task.add_form:
+  route_name: entity.petrichor_task.add_form
+  title: 'Add task'
+  appears_on:
+    - entity.petrichor_task.collection

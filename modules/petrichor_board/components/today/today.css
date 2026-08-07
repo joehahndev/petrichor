@@ -1,0 +1,78 @@
+/**
+ * @file
+ * Today view.
+ *
+ * Rhythm only — the cards themselves arrive with card.css, which SDC attaches
+ * when the first card renders. Kept narrow on purpose: a single readable column
+ * is the whole point of this page. Nothing here is draggable, which is why none
+ * of the board's grab affordances reach it; board.css scopes them under
+ * .petrichor-board for exactly that reason.
+ *
+ * Same token posture as the other three files: a petrichor_theme token first, a
+ * private `--petrichor-local-*` fallback second.
+ */
+
+:where(.petrichor-today) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-today) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+  }
+}
+
+.petrichor-today {
+  max-inline-size: 44rem;
+}
+
+.petrichor-today__list {
+  display: flex;
+  flex-direction: column;
+  /* This list is read top to bottom rather than scanned as a group, and the air
+     between items is what keeps a dozen of them from reading as a backlog. */
+  gap: var(--petrichor-space-3, 1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The reason is why this card made the focus set at all — the one piece of
+   metadata on this page that appears on no card anywhere else — so it gets a
+   lozenge and full-strength text instead of the muted colour the rest of the
+   meta line inherits. */
+.petrichor-today .petrichor-card__reason {
+  padding: 0.0625rem var(--petrichor-space-2, 0.5rem);
+  color: var(--petrichor-text, inherit);
+  border-radius: 999px;
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  font-weight: 500;
+}
+
+.petrichor-today__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Stated because a host theme styling bare `li` would otherwise offset it. */
+  margin: 0;
+  padding: var(--petrichor-space-3, 1rem);
+  text-align: center;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border: 1px dashed var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius-lg, 12px);
+  font-style: italic;
+  min-block-size: 6rem;
+}
+
+.petrichor-today__footer {
+  display: flex;
+  flex-wrap: wrap;
+  margin: var(--petrichor-space-4, 1.5rem) 0 0;
+  padding-block-start: var(--petrichor-space-3, 1rem);
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border-block-start: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  gap: var(--petrichor-space-1, 0.25rem) var(--petrichor-space-3, 1rem);
+}

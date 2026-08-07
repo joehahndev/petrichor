@@ -1,0 +1,5 @@
+entity.petrichor_timesheet.add_form:
+  route_name: entity.petrichor_timesheet.add_form
+  title: 'Log time'
+  appears_on:
+    - entity.petrichor_timesheet.collection

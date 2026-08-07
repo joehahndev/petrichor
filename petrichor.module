@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Keeps core's contextual-link overlay off the Petrichor workspace.
+ *
+ * Contextual links attach a hidden pencil button to every "contextual region"
+ * on the page and bind hover handlers to that region. On the board that
+ * overlay lands on top of the drag surface and competes for the pointer
+ * events SortableJS needs, so the workspace suppresses it — on Petrichor's
+ * own routes only, in whatever theme the host site is running. Site-wide
+ * suppression would be rude and is not done here.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Block\BlockPluginInterface;
+use Drupal\petrichor\Theme\PetrichorNegotiator;
+
+/**
+ * Implements hook_block_build_alter().
+ *
+ * Declares the variation before the block's cache ID is computed, on every
+ * block rather than only the ones we go on to alter: a block rendered first
+ * outside the workspace would otherwise be served back from cache — pencil
+ * and all — the next time it appears inside it. The context has two values,
+ * so only blocks that appear on both sides pay for a second cache entry.
+ *
+ * @see \Drupal\petrichor\Cache\WorkspaceRouteCacheContext
+ */
+function petrichor_block_build_alter(array &$build, BlockPluginInterface $block): void {
+  $build['#cache']['contexts'][] = 'route.name.is_petrichor_workspace';
+}
+
+/**
+ * Implements hook_block_view_alter().
+ *
+ * Drops the placeholder itself rather than trying to out-specificity the
+ * pencil in CSS. Same mechanism core uses to keep contextual links off the
+ * main content and help blocks, and the same route test Layout Builder
+ * applies inside its own UI.
+ */
+function petrichor_block_view_alter(array &$build, BlockPluginInterface $block): void {
+  if (PetrichorNegotiator::isWorkspaceRoute(\Drupal::routeMatch())) {
+    unset($build['#contextual_links']);
+  }
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * With no placeholders left to decorate, the contextual assets are dead
+ * weight on a page whose whole point is calm, so drop them. Belt and braces
+ * rather than the main defence: when the Toolbar module is enabled its
+ * "Edit" tab pulls drupal.contextual-links back in as a dependency of
+ * drupal.contextual-toolbar, and that attachment lives in page_top, out of
+ * reach here. Removing it there would mean varying the site's whole toolbar
+ * cache by route, which is not a bill Petrichor gets to hand the host site.
+ * Harmless either way — without placeholders the script finds nothing.
+ */
+function petrichor_page_attachments_alter(array &$attachments): void {
+  if (empty($attachments['#attached']['library'])) {
+    return;
+  }
+  if (!PetrichorNegotiator::isWorkspaceRoute(\Drupal::routeMatch())) {
+    return;
+  }
+  $unwanted = [
+    'contextual/drupal.contextual-links',
+    'contextual/drupal.contextual-toolbar',
+  ];
+  $attachments['#attached']['library'] = array_values(array_filter(
+    $attachments['#attached']['library'],
+    static fn ($library): bool => !in_array($library, $unwanted, TRUE),
+  ));
+}

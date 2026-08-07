@@ -1,0 +1,8 @@
+name: 'Petrichor Milestones'
+type: module
+description: 'Milestone entity for roadmaps/timelines. Attaches a milestone reference field to tasks when both modules are enabled.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_projects

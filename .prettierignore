@@ -1,0 +1,9 @@
+# Drupal config YAML is machine-generated and exported by the config system;
+# prettier's opinions about it are neither wanted nor stable.
+#
+# drupal.org's CI writes exactly this file when a project does not ship one, so
+# committing it changes nothing there. It matters locally: ddev-drupal-contrib
+# writes its copy at the repository root and then runs eslint from inside the
+# module directory, where prettier cannot see it — so without this file the
+# local run reports errors on every config file and disagrees with CI.
+*.yml

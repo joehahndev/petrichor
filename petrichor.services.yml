@@ -1,0 +1,17 @@
+services:
+  petrichor.theme_negotiator:
+    class: Drupal\petrichor\Theme\PetrichorNegotiator
+    arguments: ['@config.factory', '@theme_handler']
+    tags:
+      # Above the admin theme (-40) so entity forms under /pm follow the
+      # workspace instead of jumping into Claro, and above the site default
+      # (-100). Below the negotiators that are tied to functionality rather
+      # than presentation and would break if overridden: batch and db_update
+      # (100), AJAX base page and block demo (1000).
+      - { name: theme_negotiator, priority: 50 }
+
+  cache_context.route.name.is_petrichor_workspace:
+    class: Drupal\petrichor\Cache\WorkspaceRouteCacheContext
+    arguments: ['@current_route_match']
+    tags:
+      - { name: cache.context }

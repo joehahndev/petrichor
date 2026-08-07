@@ -1,0 +1,9 @@
+name: 'Petrichor Comments'
+type: module
+description: 'Threaded comments on tasks, plus the MCP tools that let an agent read and append to a task worklog.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - drupal:comment
+  - petrichor:petrichor
+  - petrichor:petrichor_tasks

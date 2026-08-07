@@ -1,0 +1,25 @@
+{#
+/**
+ * @file
+ * One status column.
+ *
+ * data-petrichor-dropzone and data-petrichor-status sit on the <ul>, not the
+ * <section>, because Sortable reports evt.from / evt.to as the list elements.
+ * board.js reads the destination status straight off evt.to.dataset.
+ */
+#}
+<section {{ attributes.addClass('petrichor-board__column') }} aria-labelledby="petrichor-col-{{ column.id }}">
+  <h2 class="petrichor-board__column-title" id="petrichor-col-{{ column.id }}">
+    {{ column.label }} <span class="petrichor-board__count">{{ column.total }}</span>
+  </h2>
+  <ul class="petrichor-board__cards"
+      data-petrichor-dropzone
+      data-petrichor-status="{{ column.id }}">
+    {% for card in column.cards %}
+      {{ include('petrichor_board:card', { card: card }, with_context = false) }}
+    {% else %}
+      <li class="petrichor-board__empty">{{ empty_text }}</li>
+    {% endfor %}
+  </ul>
+  {% if column.note %}<p class="petrichor-board__note">{{ column.note }}</p>{% endif %}
+</section>

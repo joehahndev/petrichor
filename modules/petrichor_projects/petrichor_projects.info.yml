@@ -1,0 +1,7 @@
+name: 'Petrichor Projects'
+type: module
+description: 'Project entity — the container everything else (tasks, milestones, wiki, ideas) hangs off.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor

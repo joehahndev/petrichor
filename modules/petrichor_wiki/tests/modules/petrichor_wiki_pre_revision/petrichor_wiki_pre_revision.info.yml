@@ -1,0 +1,7 @@
+name: 'Petrichor Wiki pre-revision state'
+type: module
+description: 'Test-only: presents petrichor_wiki_page as it was before revisions, so the conversion update has something real to convert.'
+package: Testing
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor_wiki

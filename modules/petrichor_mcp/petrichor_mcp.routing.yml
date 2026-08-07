@@ -1,0 +1,10 @@
+petrichor_mcp.endpoint:
+  path: '/mcp'
+  defaults:
+    _controller: 'Drupal\petrichor_mcp\Controller\McpController::handle'
+  methods: [POST]
+  requirements:
+    _permission: 'access petrichor mcp'
+  options:
+    no_cache: TRUE
+    _auth: ['key_auth', 'basic_auth', 'cookie']

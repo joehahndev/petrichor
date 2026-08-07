@@ -1,0 +1,7 @@
+petrichor_milestones.settings:
+  path: '/admin/structure/petrichor/milestone'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorEntitySettingsForm'
+    _title: 'Milestone settings'
+  requirements:
+    _permission: 'administer petrichor'

@@ -1,0 +1,24 @@
+{#
+/**
+ * @file
+ * Today's focus set.
+ *
+ * The root is a <div> rather than the <ul> itself because `as_of` and `note`
+ * are not list items and would be invalid markup inside one.
+ */
+#}
+<div {{ attributes.addClass('petrichor-today') }}>
+  <ul class="petrichor-today__list">
+    {% for card in items %}
+      {{ include('petrichor_board:card', { card: card, show_project: true }, with_context = false) }}
+    {% else %}
+      <li class="petrichor-today__empty">{{ empty_text|default('Nothing needs you today'|t) }}</li>
+    {% endfor %}
+  </ul>
+  {% if note or as_of %}
+    <p class="petrichor-today__footer">
+      {% if note %}<span class="petrichor-today__note">{{ note }}</span>{% endif %}
+      {% if as_of %}<span class="petrichor-today__as-of">{{ 'As of @date'|t({'@date': as_of}) }}</span>{% endif %}
+    </p>
+  {% endif %}
+</div>

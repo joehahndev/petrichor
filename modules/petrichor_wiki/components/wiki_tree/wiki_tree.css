@@ -1,0 +1,193 @@
+/**
+ * @file
+ * Wiki page tree and flat page lists.
+ *
+ * Same token posture as the board's components: a petrichor_theme token first,
+ * a private `--petrichor-local-*` fallback second. Colour fallbacks are currentColor
+ * mixes so the list adopts the host theme's text and background instead of
+ * imposing a palette; space and radius fallbacks are the theme's own numbers,
+ * so the geometry is identical with or without it.
+ *
+ * The `--petrichor-local-*` names are private — not part of the theme's token
+ * contract, and only ever the fallback arm of a var() on a contract token.
+ *
+ * Scanned, not read: this file spends its budget on vertical rhythm and on the
+ * indent guide, because the question a tree answers is "where am I and what is
+ * near me", and both are answered by shape before they are answered by words.
+ */
+
+:where(.petrichor-wiki-tree) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+  --petrichor-local-raised: color-mix(in sRGB, currentColor 6%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-wiki-tree) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+  }
+}
+
+.petrichor-wiki-tree {
+  /* Narrower than prose on purpose. Every line here is a title, and a title
+     that wraps twice stops being scannable — the cap forces short titles to
+     read as a column of distinct objects rather than as paragraphs. */
+  max-inline-size: min(100%, 34rem);
+}
+
+.petrichor-wiki-tree__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Nested levels only. The indent carries the hierarchy; the rule is the guide
+   that makes six siblings at depth three still read as one group. Drawn on the
+   list rather than each item so it is one continuous line, not a dashed one. */
+.petrichor-wiki-tree__list:not(.petrichor-wiki-tree__list--depth-0) {
+  margin-inline-start: var(--petrichor-space-2, 0.5rem);
+  padding-inline-start: var(--petrichor-space-3, 1rem);
+  border-inline-start: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+}
+
+.petrichor-wiki-tree__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--petrichor-space-2, 0.5rem);
+  /* Stated because a host theme styling bare `li` would otherwise add its own
+     rhythm on top of this one. */
+  margin: 0;
+  padding: 0;
+}
+
+/* The nested list is a flex item and must take the whole row, or a branch would
+   sit beside its own parent's title. */
+.petrichor-wiki-tree__item > .petrichor-wiki-tree__list {
+  flex: 1 0 100%;
+}
+
+.petrichor-wiki-tree__link {
+  /* 44px is the touch floor, but the reason it matters here is different from
+     the board's: this is a dense column of adjacent targets, so the row has to
+     be tall enough that a near-miss lands on nothing rather than on the wrong
+     page. */
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  font-size: var(--petrichor-text-base, 1rem);
+  line-height: 1.4;
+  min-block-size: 2.25rem;
+  padding-block: var(--petrichor-space-1, 0.25rem);
+}
+
+a.petrichor-wiki-tree__link:hover,
+a.petrichor-wiki-tree__link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+a.petrichor-wiki-tree__link:focus-visible {
+  border-radius: var(--petrichor-radius, 6px);
+  outline: 3px solid var(--petrichor-focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Where you are. Not colour: the fill plus the weight survive greyscale,
+   forced colours and every colour-vision deficiency, and aria-current already
+   carries it for assistive tech. */
+.petrichor-wiki-tree__link[aria-current="page"] {
+  padding-inline: var(--petrichor-space-2, 0.5rem);
+  margin-inline-start: calc(var(--petrichor-space-2, 0.5rem) * -1);
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  font-weight: 600;
+}
+
+/* Not a link — the current crumb, or a wanted page this viewer cannot create.
+   Full-strength text: it is still the thing being named. */
+.petrichor-wiki-tree__link--plain {
+  cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+   Wanted pages.
+   ---------------------------------------------------------------------------
+   A wanted link points at a page that does not exist. Marking one is half the
+   point of wiki-linking, so this is a state, not an error — nothing here is
+   red, and nothing here is only a colour. The dashed underline says "not the
+   same as the others" at a glance and the `wanted` badge beside it says what
+   the difference is.
+   --------------------------------------------------------------------------- */
+
+.petrichor-wiki-tree__link--wanted {
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+}
+
+a.petrichor-wiki-tree__link--wanted:hover,
+a.petrichor-wiki-tree__link--wanted:focus-visible {
+  text-decoration: underline solid;
+  color: var(--petrichor-text, inherit);
+}
+
+.petrichor-wiki-tree__badge {
+  padding: 0.0625rem var(--petrichor-space-2, 0.5rem);
+  white-space: nowrap;
+  /* Full-strength, not muted: a 0.875rem label inside a muted colour on a
+     muted row is two contrast reductions stacked on the same text. */
+  color: var(--petrichor-text, inherit);
+  border: 1px dashed var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: 999px;
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-wiki-tree__meta {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.petrichor-wiki-tree__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--petrichor-space-3, 1rem);
+  text-align: center;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border: 1px dashed var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius-lg, 12px);
+  font-style: italic;
+  min-block-size: 5rem;
+}
+
+.petrichor-wiki-tree__note {
+  margin: var(--petrichor-space-3, 1rem) 0 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-wiki-tree__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petrichor-space-1, 0.25rem) var(--petrichor-space-3, 1rem);
+  margin: var(--petrichor-space-4, 1.5rem) 0 0;
+  padding-block-start: var(--petrichor-space-3, 1rem);
+  border-block-start: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+/* Collapsed rather than hidden, so a host theme that fills the slot later gets
+   the divider back without touching this file. */
+.petrichor-wiki-tree__footer:empty {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  block-size: 0;
+}

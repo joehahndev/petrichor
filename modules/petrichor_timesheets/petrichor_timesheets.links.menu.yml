@@ -1,0 +1,5 @@
+entity.petrichor_timesheet.collection:
+  title: 'Timesheets'
+  route_name: entity.petrichor_timesheet.collection
+  parent: petrichor.dashboard
+  weight: 15

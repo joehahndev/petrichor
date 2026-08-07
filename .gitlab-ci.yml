@@ -1,0 +1,24 @@
+# GitLab CI for drupal.org contrib.
+#
+# Pulls in the shared DrupalCI templates, which supply the composer/phpcs/
+# phpstan/phpunit jobs and the matrix of core and PHP versions. Local overrides
+# go in the variables block below, not by redefining jobs.
+include:
+  - project: $_GITLAB_TEMPLATES_REPO
+    ref: $_GITLAB_TEMPLATES_REF
+    file:
+      - '/includes/include.drupalci.main.yml'
+      - '/includes/include.drupalci.variables.yml'
+      - '/includes/include.drupalci.workflows.yml'
+
+variables:
+  # The suite uses PHP 8.3 language features and typed properties throughout,
+  # and declares `php: >=8.3` in composer.json. Testing below that would only
+  # produce parse errors.
+  _TARGET_PHP: "8.3"
+  # _TARGET_CORE is deliberately NOT set. It is deprecated, and setting it to
+  # "11" is read literally as core 11.0.0 rather than "the 11 branch" — which
+  # installed a core predating Drupal\Core\Entity\Attribute\ContentEntityType
+  # (added in 11.1.0). Every entity type then failed to register, which
+  # surfaced as 9 phpstan errors and 29 phpunit errors that looked like
+  # unrelated bugs. Left unset, DRUPAL_CORE defaults to $CORE_STABLE.

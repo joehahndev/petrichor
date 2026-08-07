@@ -1,0 +1,5 @@
+entity.petrichor_project.add_form:
+  route_name: entity.petrichor_project.add_form
+  title: 'Add project'
+  appears_on:
+    - entity.petrichor_project.collection

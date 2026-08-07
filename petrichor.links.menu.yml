@@ -1,0 +1,19 @@
+# In the main menu, not under system.admin. The workspace theme's one
+# navigation strip renders the main menu; parenting this tree to the admin menu
+# left that strip with nothing but the site's stock Home link, so the theme had
+# no way to reach Today, the collections, or back here.
+petrichor.dashboard:
+  title: 'Petrichor PM'
+  description: 'Project management dashboard.'
+  route_name: petrichor.dashboard
+  menu_name: main
+  # Children show without needing the active trail, so Today and the
+  # collections are reachable from anywhere in the workspace.
+  expanded: true
+  weight: -8
+
+petrichor.settings:
+  title: 'Petrichor PM'
+  description: 'Choose whether the Petrichor workspace uses its own theme.'
+  route_name: petrichor.settings
+  parent: system.admin_config_ui

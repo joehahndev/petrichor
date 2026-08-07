@@ -1,0 +1,7 @@
+petrichor.settings:
+  type: config_object
+  label: 'Petrichor PM settings'
+  mapping:
+    use_workspace_theme:
+      type: boolean
+      label: 'Render the Petrichor workspace in the Petrichor theme'

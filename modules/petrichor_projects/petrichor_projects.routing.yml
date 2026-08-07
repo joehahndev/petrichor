@@ -1,0 +1,7 @@
+petrichor_projects.settings:
+  path: '/admin/structure/petrichor/project'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorEntitySettingsForm'
+    _title: 'Project settings'
+  requirements:
+    _permission: 'administer petrichor'

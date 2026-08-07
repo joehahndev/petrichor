@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * @file
+ * Rewinds petrichor_wiki_page to its pre-revision shape, on demand.
+ *
+ * The conversion in petrichor_wiki_update_11001() is the only code in the
+ * suite that can destroy a knowledge base, and it is unreachable from an
+ * ordinary kernel test: the schema installs from current code, so the entity
+ * type is already revisionable before the update's first line runs and there
+ * is nothing to convert.
+ *
+ * This module supplies the missing half. With the state flag set, the entity
+ * type and its fields are presented exactly as they were before revisions
+ * landed, so a test can install that schema, write real pages into it, drop
+ * the flag, and run the actual update against actual data.
+ *
+ * Same mechanism core uses for its own conversion coverage (entity_test_update
+ * flips its definitions through state).
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityTypeInterface;
+
+/**
+ * Whether to present the pre-conversion definitions.
+ */
+function petrichor_wiki_pre_revision_active(): bool {
+  return (bool) \Drupal::state()->get('petrichor_wiki_pre_revision.active', FALSE);
+}
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function petrichor_wiki_pre_revision_entity_type_alter(array &$entity_types): void {
+  if (!petrichor_wiki_pre_revision_active() || !isset($entity_types['petrichor_wiki_page'])) {
+    return;
+  }
+  $entity_type = $entity_types['petrichor_wiki_page'];
+
+  $keys = $entity_type->get('entity_keys');
+  unset($keys['revision']);
+  $entity_type->set('entity_keys', $keys);
+  $entity_type->set('revision_table', NULL);
+  $entity_type->set('revision_metadata_keys', []);
+  $entity_type->set('show_revision_ui', FALSE);
+
+  // The revision route provider and its forms would otherwise be resolved
+  // against an entity type that has no revisions.
+  $handlers = $entity_type->get('handlers');
+  unset($handlers['route_provider']['revision']);
+  unset($handlers['form']['revision-revert'], $handlers['form']['revision-delete']);
+  $entity_type->set('handlers', $handlers);
+
+  $links = $entity_type->get('links');
+  foreach (['version-history', 'revision', 'revision-revert-form', 'revision-delete-form'] as $link) {
+    unset($links[$link]);
+  }
+  $entity_type->set('links', $links);
+}
+
+/**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function petrichor_wiki_pre_revision_entity_base_field_info_alter(array &$fields, EntityTypeInterface $entity_type): void {
+  if ($entity_type->id() !== 'petrichor_wiki_page' || !petrichor_wiki_pre_revision_active()) {
+    return;
+  }
+  // The revision log trio only exists because the entity is revisionable.
+  unset($fields['revision_log'], $fields['revision_created'], $fields['revision_user']);
+  foreach ($fields as $field) {
+    $field->setRevisionable(FALSE);
+  }
+}

@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Attaches milestone fields to other Petrichor entities.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Adds a milestone reference to tasks without petrichor_tasks having to
+ * depend on this module.
+ */
+function petrichor_milestones_entity_base_field_info(EntityTypeInterface $entity_type): array {
+  $fields = [];
+  if ($entity_type->id() === 'petrichor_task') {
+    $fields['milestone'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Milestone'))
+      ->setSetting('target_type', 'petrichor_milestone')
+      ->setDisplayOptions('form', [
+        'type' => 'entity_reference_autocomplete',
+        'weight' => 9,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+  }
+  return $fields;
+}

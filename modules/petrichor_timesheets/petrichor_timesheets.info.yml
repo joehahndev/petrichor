@@ -1,0 +1,8 @@
+name: 'Petrichor Timesheets'
+type: module
+description: 'Time tracking entries against tasks.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_tasks

@@ -1,0 +1,8 @@
+name: 'Petrichor Tasks'
+type: module
+description: 'Task entity with status, priority, assignee, estimates, and subtasks. Kanban/board views to come.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_projects

@@ -1,0 +1,9 @@
+services:
+  petrichor_comments.service:
+    class: Drupal\petrichor_comments\CommentService
+    arguments: ['@entity_type.manager', '@petrichor_tasks.service', '@current_user']
+  petrichor_comments.tool_provider:
+    class: Drupal\petrichor_comments\CommentToolProvider
+    arguments: ['@petrichor_comments.service']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

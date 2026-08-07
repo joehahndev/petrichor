@@ -1,0 +1,40 @@
+services:
+  # Wiki links and backlinks. Kept first and alphabetical so concurrent work on
+  # the tree/search half of the module appends below rather than interleaving.
+  logger.channel.petrichor_wiki:
+    parent: logger.channel_base
+    arguments: ['petrichor_wiki']
+  petrichor_wiki.backlink_storage:
+    class: Drupal\petrichor_wiki\BacklinkStorage
+    arguments: ['@database']
+  petrichor_wiki.link_service:
+    class: Drupal\petrichor_wiki\WikiLinkService
+    arguments:
+      - '@petrichor_wiki.backlink_storage'
+      - '@entity_type.manager'
+      - '@cache_tags.invalidator'
+      - '@logger.channel.petrichor_wiki'
+    tags:
+      # Contributes [[Page Title]] to the shared Markdown format. Untagging it
+      # (or uninstalling this module) leaves those bodies rendering the syntax
+      # as literal text — no error, no stale markup.
+      - { name: petrichor_markdown.extension_provider }
+  petrichor_wiki.service:
+    class: Drupal\petrichor_wiki\WikiService
+    arguments:
+      - '@entity_type.manager'
+      - '@database'
+      - '@datetime.time'
+      # Read rather than assumed: between a module update that revisions the
+      # entity type and the schema actually landing, the code definition and
+      # the database disagree, and trusting the code makes every wiki save
+      # fatal.
+      - '@entity.definition_update_manager'
+      # Without this the backlink and wanted-page methods take their
+      # not-installed branch and report empty rather than absent.
+      - '@petrichor_wiki.link_service'
+  petrichor_wiki.tool_provider:
+    class: Drupal\petrichor_wiki\WikiToolProvider
+    arguments: ['@petrichor_wiki.service']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

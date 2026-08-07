@@ -1,0 +1,28 @@
+petrichor_board.today:
+  path: '/pm/today'
+  defaults:
+    _controller: 'Drupal\petrichor_board\Controller\BoardController::today'
+    _title: 'Today'
+  requirements:
+    _permission: 'view petrichor content'
+
+petrichor_board.board:
+  path: '/pm/board/{petrichor_project}'
+  defaults:
+    _controller: 'Drupal\petrichor_board\Controller\BoardController::board'
+    _title: 'Board'
+  requirements:
+    _permission: 'view petrichor content'
+    _entity_access: 'petrichor_project.view'
+
+petrichor_board.move:
+  path: '/pm/board/task/{petrichor_task}/move'
+  defaults:
+    _controller: 'Drupal\petrichor_board\Controller\BoardController::move'
+  methods: [POST]
+  requirements:
+    _permission: 'manage petrichor content'
+    _entity_access: 'petrichor_task.update'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: TRUE

@@ -1,0 +1,156 @@
+/**
+ * @file
+ * Board layout, drag affordances, and the status line.
+ *
+ * Every rule is scoped under .petrichor-board — this module ships as contrib
+ * and must not restyle a host site. Colours read a petrichor_theme token first
+ * and a private `--petrichor-local-*` currentColor mix second, so without the theme
+ * the board adopts whatever background and text colour the host already set
+ * instead of fighting it in either light or dark. Space and radius fallbacks
+ * are the theme's own numbers, so the geometry is the same either way.
+ *
+ * Drag affordances live here rather than in card.css on purpose: a card in the
+ * Today view is not draggable, and must not claim to be.
+ */
+
+:where(.petrichor-board) {
+  --petrichor-local-danger: #a4251b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-board) {
+    --petrichor-local-danger: #ff9d90;
+  }
+}
+
+/* No container-type here on purpose: `container-type: inline-size` implies
+   `contain: layout`, which would make the board a containing block for
+   position:fixed descendants and mis-place Sortable's fallback drag ghost on
+   touch. A viewport media query costs nothing here. */
+
+.petrichor-board__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--petrichor-space-3, 1rem);
+  margin-block-end: var(--petrichor-space-4, 1.5rem);
+}
+
+.petrichor-board__project {
+  margin: 0;
+  font-size: var(--petrichor-text-xl, 1.375rem);
+  line-height: 1.3;
+}
+
+/* A status line, not an alert. A failed move is recoverable and the board is
+   still usable underneath it, so this is a quiet band with a danger-coloured
+   edge rather than a filled red box. The message text carries the meaning; the
+   colour only reinforces it. */
+.petrichor-board__error {
+  margin: 0 0 var(--petrichor-space-3, 1rem);
+  padding: var(--petrichor-space-2, 0.5rem) var(--petrichor-space-3, 1rem);
+  border-inline-start: 3px solid var(--petrichor-danger, var(--petrichor-local-danger));
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: color-mix(in sRGB, var(--petrichor-danger, var(--petrichor-local-danger)) 8%, transparent);
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  line-height: 1.45;
+}
+
+/* Collapsed rather than hidden: display/visibility would pull the live region
+   out of the accessibility tree and the failure message would go unannounced. */
+.petrichor-board__error:empty {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  block-size: 0;
+}
+
+.petrichor-board__columns {
+  display: grid;
+  overflow-x: auto;
+  grid-auto-columns: minmax(17rem, 1fr);
+  grid-auto-flow: column;
+  /* Stretched, not start-aligned: equal-height columns give every column the
+     same sticky header line and the same generous drop area, and a short column
+     stops looking like an afterthought beside a full one. */
+  align-items: stretch;
+  /* Room for the focus ring of a card in the last column. */
+  padding-block-end: var(--petrichor-space-2, 0.5rem);
+  gap: var(--petrichor-space-3, 1rem);
+  /* The board scrolls sideways; the page does not follow it. */
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Roughly one column at a time on a phone reads calmer than five squeezed ones;
+   the row still scrolls horizontally. */
+@media (max-width: 48rem) {
+  .petrichor-board__columns {
+    grid-auto-columns: minmax(14rem, 85%);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Drag affordances.
+   --------------------------------------------------------------------------- */
+
+.petrichor-board .petrichor-card {
+  cursor: grab;
+}
+
+/* Grip texture: a pseudo-element and a repeating gradient, so the card markup
+   stays a plain <li>. The cursor says a card can be picked up once the pointer
+   is on it; this says so before it gets there. Decorative, and
+   pointer-events: none — it sits over the card and must never swallow the drag
+   it advertises. */
+.petrichor-board .petrichor-card::after {
+  position: absolute;
+  content: "";
+  transition: opacity var(--petrichor-transition, 150ms ease);
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+  background-size: 4px 4px;
+  inset-block-start: var(--petrichor-space-2, 0.5rem);
+  inset-inline-end: var(--petrichor-space-2, 0.5rem);
+  inline-size: 0.5rem;
+  block-size: 0.875rem;
+}
+
+.petrichor-board .petrichor-card:hover::after,
+.petrichor-board .petrichor-card:focus-visible::after {
+  opacity: 0.5;
+}
+
+/* Keeps a long title out from under the grip. */
+.petrichor-board .petrichor-card__title {
+  padding-inline-end: var(--petrichor-space-3, 1rem);
+}
+
+/* Cursors restated at three classes so they beat the plain `grab` above no
+   matter which of the two component libraries the aggregator emits first —
+   card.css sets the same properties at one class less. */
+.petrichor-board .petrichor-card:active,
+.petrichor-board .petrichor-card.sortable-chosen,
+.petrichor-board .petrichor-card.petrichor-card--grabbed {
+  cursor: grabbing;
+}
+
+.petrichor-board .petrichor-card.petrichor-card--pending {
+  cursor: progress;
+}
+
+/* While a card is in the air the whole row is a drop surface, so the cursor
+   should not snap back to the default over the gaps between columns. */
+.petrichor-board__columns:has(.petrichor-card--ghost) {
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petrichor-board .petrichor-card::after {
+    transition: none;
+  }
+}

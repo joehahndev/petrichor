@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Keeps manual card order in step with the task lifecycle.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for petrichor_task.
+ *
+ * A status change made anywhere other than the board (MCP, edit form, drush)
+ * drops the card's manual order row, so it re-enters its new column as
+ * "unplaced" — i.e. at the top — rather than at a stale historical position.
+ *
+ * BoardService writes its own order row *after* calling updateTask(), so a
+ * board-driven move harmlessly overwrites this delete instead of racing it.
+ */
+function petrichor_board_petrichor_task_update(EntityInterface $task): void {
+  $original = $task->getOriginal();
+  if ($original && $original->get('status')->value !== $task->get('status')->value) {
+    petrichor_board_forget_order((int) $task->id());
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for petrichor_task.
+ */
+function petrichor_board_petrichor_task_delete(EntityInterface $task): void {
+  petrichor_board_forget_order((int) $task->id());
+}
+
+/**
+ * Drops one task's manual order row.
+ *
+ * No cache tag invalidation here: both callers are entity writes, and core
+ * already invalidates petrichor_task_list, which every board render carries.
+ */
+function petrichor_board_forget_order(int $task_id): void {
+  \Drupal::database()->delete('petrichor_board_order')
+    ->condition('task_id', $task_id)
+    ->execute();
+}

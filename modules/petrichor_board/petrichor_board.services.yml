@@ -1,0 +1,8 @@
+services:
+  petrichor_board.service:
+    class: Drupal\petrichor_board\BoardService
+    arguments:
+      - '@petrichor_tasks.service'
+      - '@database'
+      - '@cache_tags.invalidator'
+      - '@petrichor_projects.service'

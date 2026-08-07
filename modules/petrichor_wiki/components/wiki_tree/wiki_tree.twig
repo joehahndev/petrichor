@@ -1,0 +1,69 @@
+{#
+/**
+ * @file
+ * A list of wiki page links, nested to any depth.
+ *
+ * The recursion is a macro rather than the component including itself: an SDC
+ * include re-runs prop validation and re-attaches the library at every level,
+ * so a five-deep tree would pay for both five times over.
+ *
+ * Twig 3 macros do not inherit the importing template's context, which is why
+ * `branch` re-imports _self and takes active_id as an argument rather than
+ * reading it from the outer scope.
+ */
+#}
+{% import _self as nav %}
+
+<nav {{ attributes.addClass('petrichor-wiki-tree') }} aria-label="{{ label|default('Wiki pages'|t) }}">
+  {% if tree is not empty %}
+    {{ nav.branch(tree, active_id|default(null), 0) }}
+  {% else %}
+    <p class="petrichor-wiki-tree__empty">{{ empty_text|default('Nothing here yet.'|t) }}</p>
+  {% endif %}
+
+  {% if note|default(null) %}<p class="petrichor-wiki-tree__note">{{ note }}</p>{% endif %}
+
+  {# Always rendered, hidden by :empty when unfilled. A wrapper conditional on
+     block content is not expressible in Twig, and CSS does it for free. #}
+  <p class="petrichor-wiki-tree__footer">{% block footer %}{% endblock %}</p>
+</nav>
+
+{% macro branch(nodes, active_id, depth) %}
+  {% import _self as nav %}
+  <ul class="petrichor-wiki-tree__list petrichor-wiki-tree__list--depth-{{ depth }}">
+    {% for node in nodes %}
+      <li class="petrichor-wiki-tree__item">
+        {#
+          A wanted node still gets a link when the viewer can create pages —
+          following it is how the page gets written, which is the whole point
+          of marking a title before it exists.
+        #}
+        {% set classes = 'petrichor-wiki-tree__link' ~ (node.wanted ? ' petrichor-wiki-tree__link--wanted' : '') %}
+        {% if node.url %}
+          <a class="{{ classes }}"
+             href="{{ node.url }}"
+             {% if active_id is not null and node.id == active_id %}aria-current="page"{% endif %}>{{ node.title }}</a>
+        {% else %}
+          {# No destination: the current page in a crumb trail, or a wanted
+             page this viewer may not create. Still marked, still readable. #}
+          <span class="{{ classes }} petrichor-wiki-tree__link--plain">{{ node.title }}</span>
+        {% endif %}
+
+        {#
+          The word, not just the styling. A dotted underline says "different";
+          only "wanted" says what the difference is, and it is the one state
+          here that changes what clicking does.
+        #}
+        {% if node.wanted %}
+          <span class="petrichor-wiki-tree__badge">{{ 'wanted'|t }}</span>
+        {% endif %}
+
+        {% if node.meta %}<span class="petrichor-wiki-tree__meta">{{ node.meta }}</span>{% endif %}
+
+        {% if node.children is not empty %}
+          {{ nav.branch(node.children, active_id, depth + 1) }}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}

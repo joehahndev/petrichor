@@ -1,0 +1,18 @@
+{
+    "name": "drupal/petrichor",
+    "description": "Agent-first project management, knowledge base and persistent AI memory, with a built-in MCP server.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://www.drupal.org/project/petrichor",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/petrichor",
+        "source": "https://git.drupalcode.org/project/petrichor"
+    },
+    "require": {
+        "php": ">=8.3",
+        "league/commonmark": "^2.6"
+    },
+    "suggest": {
+        "drupal/key_auth": "Per-agent API keys for the MCP endpoint. Without it the endpoint still authenticates over basic_auth and session cookies, which is fine for a browser but awkward for an autonomous client."
+    }
+}

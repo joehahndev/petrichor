@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Petrichor Board.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_schema().
+ */
+function petrichor_board_schema(): array {
+  return [
+    'petrichor_board_order' => [
+      'description' => 'Manual card order within a board column. Deliberately NOT a base field on petrichor_task: an entity field would make every drag a save, churning `changed` — which list_tasks sorts by, get_project_context reports as activity, and if_unchanged_since uses for conflict detection. Same reasoning as petrichor_memory_recall.',
+      'fields' => [
+        'task_id' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
+        'weight' => ['type' => 'int', 'not null' => TRUE, 'default' => 0],
+      ],
+      'primary key' => ['task_id'],
+    ],
+  ];
+}

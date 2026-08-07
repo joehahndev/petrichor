@@ -1,0 +1,5 @@
+entity.petrichor_milestone.add_form:
+  route_name: entity.petrichor_milestone.add_form
+  title: 'Add milestone'
+  appears_on:
+    - entity.petrichor_milestone.collection

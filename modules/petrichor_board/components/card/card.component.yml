@@ -1,0 +1,73 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Task card
+status: experimental
+description: 'A single task, shared by the board and the Today view. Ships no JavaScript of its own — board.js drives it through the data-petrichor-card contract.'
+
+props:
+  type: object
+  required:
+    - card
+  properties:
+    card:
+      type: object
+      title: Card
+      description: 'A TaskService stub with the presentation fields the view layer needs. This schema is a BC contract from the moment it ships: additive changes only.'
+      properties:
+        id:
+          type: integer
+          title: Task ID
+        title:
+          type: string
+          title: Task title
+        url:
+          type: string
+          title: Canonical URL
+        move_url:
+          type: string
+          title: Move endpoint
+          description: POST target for this card, rendered into data-move-url.
+        status:
+          type: string
+          title: Status machine name
+        priority:
+          type: string
+          title: Priority machine name
+        due_date:
+          type: ['string', 'null']
+          title: Due date
+          description: 'Y-m-d, or null. Never rendered through a date filter — see `overdue`.'
+        overdue:
+          type: boolean
+          title: Overdue
+          description: Computed server-side against date('Y-m-d'). The view layer must not derive it, so that no Date object is ever constructed here.
+        blocked:
+          type: boolean
+          title: Blocked
+          description: Waiting on something external. Orthogonal to status — a task can be in_progress and blocked, which is why this is a flag and not a sixth column.
+        blocked_note:
+          type: ['string', 'null']
+          title: Blocked on
+          description: What the task is waiting for. Null when not blocked or when no reason was given.
+        changed:
+          type: string
+          title: Last changed
+          description: ISO 8601 string echoed back verbatim as if_unchanged_since. Must not be reformatted — updateTask() compares it as a raw string.
+        project_title:
+          type: ['string', 'null']
+          title: Project title
+        reason:
+          type: ['string', 'null']
+          title: Focus reason
+          description: 'Why this task made the Today set, e.g. "overdue", "in progress". Null on the board.'
+        assignee_name:
+          type: ['string', 'null']
+          title: Assignee name
+    show_project:
+      type: boolean
+      title: Show project
+      description: Today sets this true; the board leaves it false because every card already belongs to the same project.
+
+slots:
+  card_footer:
+    title: Card footer
+    description: Extra controls below the card metadata — host sites inject buttons here.

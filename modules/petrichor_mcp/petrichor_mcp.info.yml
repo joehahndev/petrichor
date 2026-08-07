@@ -1,0 +1,10 @@
+name: 'Petrichor MCP'
+type: module
+description: 'MCP server (Streamable HTTP, JSON-RPC) exposing Petrichor projects, tasks, and wiki to AI agents.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_projects
+  - petrichor:petrichor_tasks
+  - petrichor:petrichor_wiki

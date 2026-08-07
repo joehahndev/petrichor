@@ -1,0 +1,65 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Wiki tree
+status: experimental
+description: 'A list of links to wiki pages. Nested for the KB index, flat for the backlinks and wanted-page reports — the same node shape covers all three, because all three are "pages you can go to next". Ships no JavaScript: the tree arrives already pruned to the spine, so there is nothing to expand.'
+
+props:
+  type: object
+  required:
+    - tree
+  properties:
+    tree:
+      type: array
+      title: Nodes
+      description: 'Nodes in display order. A node with an empty `children` array renders as a leaf, so a flat list is just a tree of depth one. This schema is a BC contract from the moment it ships: additive changes only.'
+      items:
+        type: object
+        properties:
+          id:
+            type: ['integer', 'null']
+            title: Page ID
+            description: 'Null for a wanted page — the title exists as an intention, not as a record.'
+          title:
+            type: string
+            title: Page title
+          url:
+            type: ['string', 'null']
+            title: Destination
+            description: 'Null renders the title as plain text: the current page in a crumb trail, or a wanted page the viewer may not create.'
+          wanted:
+            type: boolean
+            title: Wanted
+            description: 'True when no page carries this title yet. Styled distinctly, never by colour alone — see wiki_tree.css.'
+          meta:
+            type: ['string', 'null']
+            title: Note
+            description: 'One short fact about the node, e.g. "4 pages link here". Plain text; never markup.'
+          children:
+            type: array
+            title: Child nodes
+            items:
+              type: object
+    label:
+      type: string
+      title: Accessible name
+      description: 'Names the <nav> landmark. Required in practice — a page with three of these needs them told apart.'
+      examples:
+        - 'Knowledge base pages'
+    active_id:
+      type: ['integer', 'null']
+      title: Active page ID
+      description: 'The node matching this gets aria-current="page". Left null on the index, where no page is being read.'
+    note:
+      type: ['string', 'null']
+      title: Truncation note
+      description: 'ProvenanceTrait::listResult() note, e.g. "showing 100 of 214". There is no pager; the note is the honesty.'
+    empty_text:
+      type: string
+      title: Empty text
+      examples:
+        - 'Nothing links here yet.'
+
+slots:
+  footer:
+    title: Footer
+    description: 'One or two links out of this list — the wanted-page report, a way back. Collapses to nothing when unfilled.'

@@ -1,0 +1,46 @@
+{
+  "version": "0.2",
+  "language": "en,en-GB",
+  "words": [
+    "affordances",
+    "backlinks",
+    "codepoints",
+    "commonmark",
+    "ddev",
+    "deleter",
+    "fatals",
+    "gantt",
+    "greyscale",
+    "joehahn",
+    "Kiritimati",
+    "Leantime",
+    "nums",
+    "pageable",
+    "petrichor",
+    "rebuildable",
+    "rescanned",
+    "resends",
+    "retally",
+    "skimmable",
+    "srgb",
+    "Streamable",
+    "timesheet",
+    "timesheets",
+    "undebuggable",
+    "undraggable",
+    "unrenderable",
+    "unservable",
+    "Untagging",
+    "updb",
+    "whitelist",
+    "wikilink",
+    "worklog"
+  ],
+  "ignoreRegExpList": [
+    "/[A-Za-z0-9_+/-]{24,}={0,2}/"
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/vendor/**"
+  ]
+}

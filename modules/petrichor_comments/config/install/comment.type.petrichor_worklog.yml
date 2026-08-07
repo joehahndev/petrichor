@@ -1,0 +1,7 @@
+langcode: en
+status: true
+dependencies: {  }
+id: petrichor_worklog
+label: 'Task worklog'
+target_entity_type_id: petrichor_task
+description: 'Notes appended to a task as work happens.'

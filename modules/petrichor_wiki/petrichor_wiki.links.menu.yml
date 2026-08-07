@@ -1,0 +1,5 @@
+entity.petrichor_wiki_page.collection:
+  title: 'Wiki'
+  route_name: entity.petrichor_wiki_page.collection
+  parent: petrichor.dashboard
+  weight: 25

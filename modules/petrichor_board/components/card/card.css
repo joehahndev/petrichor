@@ -1,0 +1,268 @@
+/**
+ * @file
+ * Task card.
+ *
+ * Loaded wherever a card renders, so it carries its own fallback block: the
+ * Today view never loads board.css.
+ *
+ * Every colour, space and radius reads a petrichor_theme token first and a
+ * literal second. The theme is optional by design, so the second arm is what
+ * the card actually looks like in Olivero — colours there are mixed from
+ * currentColor, which adopts the host theme's text and background instead of
+ * imposing a palette. Space and radius fallbacks are the theme's own values, so
+ * the card has one geometry either way.
+ *
+ * The `--petrichor-local-*` names below are private: deliberately NOT part of the
+ * theme's token contract, and only ever the fallback arm of a var() on a
+ * contract token, so an installed theme always wins.
+ *
+ * --petrichor-transition carries duration AND easing (`150ms ease`), so it goes
+ * into a shorthand whole; every fallback here must therefore carry easing too.
+ */
+
+:where(.petrichor-card) {
+  --petrichor-local-surface: color-mix(in sRGB, currentColor 2%, transparent);
+  --petrichor-local-raised: color-mix(in sRGB, currentColor 6%, transparent);
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+  --petrichor-local-danger: #a4251b;
+  --petrichor-local-flag: #7d5300;
+  --petrichor-local-shadow-1: 0 1px 2px color-mix(in sRGB, currentColor 12%, transparent);
+  --petrichor-local-shadow-drag: 0 6px 18px color-mix(in sRGB, currentColor 28%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-card) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+    --petrichor-local-danger: #ff9d90;
+    --petrichor-local-flag: #f0c36b;
+  }
+}
+
+.petrichor-card {
+  /* Anchor for the grip pseudo-element board.css draws on draggable cards. */
+  position: relative;
+  display: block;
+  /* The column is a scrolling flex column, and flex items shrink by default.
+     Without this, a column holding more cards than fit squeezes every card
+     down to the min-block-size above and the titles spill out of their boxes —
+     visible only once a column is genuinely full. */
+  flex: 0 0 auto;
+  /* The list already spaces cards with `gap`. Stated explicitly because a host
+     theme styling bare `li` would otherwise add a second, uneven gap. */
+  margin: 0;
+  padding: var(--petrichor-space-3, 1rem);
+  list-style: none;
+  /* Paint only — no transform, no size. A card that animates its box mid-drag
+     moves the slot out from under the pointer. */
+  transition:
+    background-color var(--petrichor-transition, 150ms ease),
+    border-color var(--petrichor-transition, 150ms ease),
+    box-shadow var(--petrichor-transition, 150ms ease),
+    opacity var(--petrichor-transition, 150ms ease);
+  /* control-border, not border: the card's fill is only ~1.1:1 against its
+     column and the default hairline is under 2:1, so on a board — where the
+     card IS the object you manipulate — this is the one boundary that has to
+     actually clear 3:1, rather than three faint cues that each don't. */
+  border: 1px solid var(--petrichor-control-border, var(--petrichor-local-line));
+  /* Always 3px, always present: the priority colour only ever fills a border
+     that is already in the box, so priority cannot change a card's size. */
+  border-inline-start: 3px solid transparent;
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-surface, var(--petrichor-local-surface));
+  box-shadow: var(--petrichor-shadow-1, var(--petrichor-local-shadow-1));
+  /* 44px minimum touch target: the card itself is what gets dragged and what
+     the keyboard path carries, so it may never shrink below the thumb that
+     drags it. */
+  min-block-size: 2.75rem;
+  /* Room for the focus ring when the browser scrolls a focused or grabbed card
+     into view inside a column that scrolls under a sticky header. */
+  scroll-margin-block: var(--petrichor-space-6, 3rem);
+}
+
+/* Hover lifts by fill, not by a third shadow: the token contract has exactly
+   two elevations, resting and dragged, and hover is not dragged. */
+.petrichor-card:hover {
+  background-color: var(--petrichor-surface-raised, var(--petrichor-local-raised));
+}
+
+.petrichor-card:focus-visible {
+  /* The fallback is currentColor because it contrasts with whatever surface the
+     card was drawn on, in any host theme, without hard-coding a palette. */
+  outline: 3px solid var(--petrichor-focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Only high and urgent draw a stripe, and both also print their name in the
+   card meta — so priority is never carried by colour alone.
+   Low and medium deliberately draw nothing. Four hues at one lightness is a
+   rainbow, not an intensity ramp: they separate by barely 1.2:1 in luminance,
+   so under any colour-vision deficiency all four collapse to the same grey
+   line. Absence reads as "not urgent" perfectly well, and it takes two colours
+   off a board whose whole premise is low visual noise. */
+.petrichor-card--high {
+  border-inline-start-color: var(--petrichor-priority-high, var(--petrichor-local-flag));
+}
+
+.petrichor-card--urgent {
+  border-inline-start-color: var(--petrichor-priority-urgent, var(--petrichor-local-danger));
+}
+
+.petrichor-card__title {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  font-size: var(--petrichor-text-base, 1rem);
+  font-weight: 600;
+  line-height: 1.4;
+  /* Negative margin cancels the padding, so the link's hit area grows without
+     the card growing with it. */
+  margin-block: calc(var(--petrichor-space-1, 0.25rem) * -1);
+  padding-block: var(--petrichor-space-1, 0.25rem);
+}
+
+.petrichor-card__title:hover,
+.petrichor-card__title:focus-visible {
+  text-decoration: underline;
+}
+
+.petrichor-card__project {
+  margin: var(--petrichor-space-2, 0.5rem) 0 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin: var(--petrichor-space-2, 0.5rem) 0 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  gap: var(--petrichor-space-1, 0.25rem) var(--petrichor-space-3, 1rem);
+}
+
+.petrichor-card__due {
+  font-variant-numeric: tabular-nums;
+}
+
+/* card.twig prints the literal word "Overdue" ahead of the date, so the colour
+   reinforces the label and is never the signal itself. */
+.petrichor-card--overdue .petrichor-card__due {
+  color: var(--petrichor-danger, var(--petrichor-local-danger));
+  font-weight: 600;
+}
+
+/* Blocked reads as "set aside", not as an alarm — it is a fact about the work,
+   not a failure. The word carries the state; the muted card and dashed edge
+   just make it skimmable in a column. Deliberately not the danger colour:
+   overdue is urgent, blocked is the opposite of actionable. */
+.petrichor-card--blocked {
+  border-inline-start-style: dashed;
+  background-image: repeating-linear-gradient(-45deg, transparent 0 6px, var(--petrichor-accent-soft, var(--petrichor-local-accent-soft)) 6px 7px);
+}
+
+.petrichor-card__blocked {
+  /* Full-strength text, not a faded card: a blocked card still has to be
+     readable, and fading the box would drop the title below 4.5:1. */
+  color: var(--petrichor-text, currentColor);
+  font-weight: 600;
+}
+
+.petrichor-card__priority {
+  text-transform: capitalize;
+}
+
+.petrichor-card--urgent .petrichor-card__priority {
+  color: var(--petrichor-priority-urgent, var(--petrichor-local-danger));
+  font-weight: 600;
+}
+
+.petrichor-card--high .petrichor-card__priority {
+  color: var(--petrichor-priority-high, var(--petrichor-local-flag));
+  font-weight: 600;
+}
+
+.petrichor-card__reason::first-letter {
+  text-transform: capitalize;
+}
+
+/* ---------------------------------------------------------------------------
+   Interaction states.
+   ---------------------------------------------------------------------------
+   Every rule below changes colour, opacity, outline or shadow and nothing else.
+   `display`, `margin`, `height` — anything that resizes the box — reflows the
+   column under the pointer mid-drag, and the drop lands in a slot the user
+   never aimed at.
+   --------------------------------------------------------------------------- */
+
+/* In flight. board.js adds this on a 150ms timer, so a fast round trip paints
+   nothing at all; when it does appear it has to read as "working", not as
+   "broken" — hence a slow breath rather than a spinner or an alarm colour. */
+/* Static, not pulsing. An unbounded oscillation is WCAG 2.2.2 (no way to
+   pause it, and a hung request pulses forever), and an involuntary attention
+   grab in the periphery is precisely what an inattentive-ADHD workspace should
+   not do. The card already carries aria-busy, so assistive tech is told; this
+   just needs to read as "working" to the eye without losing text contrast. */
+.petrichor-card--pending {
+  cursor: progress;
+  border-inline-start-color: var(--petrichor-accent, currentColor);
+  outline: 2px solid var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  outline-offset: -2px;
+}
+
+/* Sortable's ghostClass: the placeholder left in the list, showing where the
+   card will land. It keeps the dragged card's exact box, and the outline is
+   drawn inside it with a negative offset precisely so nothing reflows. */
+/* The ghost marks where the card will land, so it is the one thing on the
+   board that must stay legible mid-drag. Fading the element would composite
+   its own outline too — 45% opacity drops the dashed accent to under 2:1,
+   below the 3:1 floor for a non-text UI state. Fade the contents instead and
+   leave the boundary at full strength. */
+.petrichor-card--ghost {
+  outline: 3px dashed var(--petrichor-accent, currentColor);
+  outline-offset: -3px;
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  box-shadow: none;
+}
+
+.petrichor-card--ghost > * {
+  opacity: 0.45;
+}
+
+/* Sortable's own class names. `sortable-chosen` lands on the card at pick-up;
+   `sortable-drag` on the element the browser snapshots for the native drag
+   image, and on the floating clone in the touch fallback. The chosen card
+   becomes the ghost a frame later and carries both classes from then on, so the
+   :not() is what keeps the lift off the placeholder. */
+.petrichor-card.sortable-chosen:not(.petrichor-card--ghost),
+.petrichor-card.sortable-drag {
+  cursor: grabbing;
+  opacity: 1;
+  background-color: var(--petrichor-surface-raised, var(--petrichor-local-raised));
+  box-shadow: var(--petrichor-shadow-drag, var(--petrichor-local-shadow-drag));
+}
+
+/* Keyboard grab (board.js, Enter or Space). Deliberately louder than
+   :focus-visible — the card is being carried, and the arrow keys now move it.
+   aria-grabbed was removed in ARIA 1.2, so board.js announces position through
+   a live region instead and this is the only visual the state gets. */
+/* Two selectors deep on purpose: board.js focuses the held card on grab and
+   after every arrow key, so a grabbed card is ALWAYS :focus-visible too, and
+   that rule would otherwise win on specificity and erase the distinction.
+   The ring changes shape rather than offset — a dashed edge survives
+   greyscale, forced colours and low vision, where 1px more offset does not. */
+.petrichor-card.petrichor-card--grabbed {
+  outline: 3px dashed var(--petrichor-focus, currentColor);
+  outline-offset: 3px;
+  background-color: var(--petrichor-surface-raised, var(--petrichor-local-raised));
+  box-shadow: var(--petrichor-shadow-drag, var(--petrichor-local-shadow-drag));
+}
+
+/* The theme resolves --petrichor-transition to 0s under this query; repeated
+   here because the theme is optional and the fallback above is a literal. */
+@media (prefers-reduced-motion: reduce) {
+  .petrichor-card {
+    transition: none;
+  }
+}

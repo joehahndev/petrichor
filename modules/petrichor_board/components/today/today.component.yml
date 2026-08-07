@@ -1,0 +1,29 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Today
+status: experimental
+description: 'The focus set for today — one flat, project-labelled list of cards. Deliberately ships no JavaScript: nothing here is draggable.'
+
+props:
+  type: object
+  required:
+    - items
+  properties:
+    items:
+      type: array
+      title: Items
+      description: Card objects from TaskService::getFocusSet(), already ranked. Each is the `card` prop of petrichor_board:card.
+      items:
+        type: object
+    as_of:
+      type: string
+      title: As of
+      description: 'Y-m-d the focus set was computed for. Printed as-is, never through a date filter.'
+    note:
+      type: ['string', 'null']
+      title: Truncation note
+      description: 'ProvenanceTrait::listResult() note, e.g. "showing 12 of 30".'
+    empty_text:
+      type: string
+      title: Empty text
+      examples:
+        - 'Nothing needs you today'

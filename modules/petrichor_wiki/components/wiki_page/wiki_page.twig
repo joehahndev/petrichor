@@ -1,0 +1,103 @@
+{#
+/**
+ * @file
+ * One knowledge-base page, laid out for reading.
+ *
+ * Headings start at <h2>: the route supplies the page title, which the theme
+ * renders as the <h1>. Same division of labour as petrichor_board:board, and
+ * it is what keeps the outline valid in any host theme.
+ *
+ * The crumb trail is written out here rather than delegated to wiki_tree — it
+ * is an ordered path, not a list of destinations, and <ol> plus a separator is
+ * the difference.
+ */
+#}
+<article {{ attributes.addClass('petrichor-wiki-page') }}>
+
+  {# One entry means this page is a root: a trail from here to here tells the
+     reader nothing they cannot see in the title above it. #}
+  {% if breadcrumb|default([])|length > 1 %}
+    <nav class="petrichor-wiki-page__breadcrumb" aria-label="{{ 'Breadcrumb'|t }}">
+      <ol class="petrichor-wiki-page__crumbs">
+        {% for crumb in breadcrumb %}
+          <li class="petrichor-wiki-page__crumb">
+            {% if crumb.url %}
+              <a class="petrichor-wiki-page__crumb-link" href="{{ crumb.url }}">{{ crumb.title }}</a>
+            {% else %}
+              <span class="petrichor-wiki-page__crumb-link" aria-current="page">{{ crumb.title }}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </nav>
+  {% endif %}
+
+  <div class="petrichor-wiki-page__meta">
+    {% if page.author_name %}
+      <span class="petrichor-wiki-page__author">
+        {{ 'By @name'|t({'@name': page.author_name}) }}
+        {#
+          Written by a person or written by an agent is the single most useful
+          fact about a KB page that is not in its text, and it is a fact about
+          the account, not about the prose — so it is stated, not styled.
+        #}
+        {% if page.author_is_agent %}
+          <span class="petrichor-wiki-page__agent">{{ 'agent'|t }}</span>
+        {% endif %}
+      </span>
+    {% endif %}
+
+    {% if page.changed_label %}
+      <span class="petrichor-wiki-page__changed">
+        {{ 'Updated'|t }}
+        <time datetime="{{ page.changed }}">{{ page.changed_label }}</time>
+      </span>
+    {% endif %}
+
+    {# Always rendered, hidden by :empty for a reader with no update access. #}
+    <span class="petrichor-wiki-page__actions">{% block page_actions %}{% endblock %}</span>
+  </div>
+
+  <div class="petrichor-wiki-page__body">
+    {% block body %}{% endblock %}
+  </div>
+
+  {% if children|default([]) is not empty %}
+    <section class="petrichor-wiki-page__section">
+      <h2 class="petrichor-wiki-page__section-title">{{ 'Pages in this section'|t }}</h2>
+      {{ include('petrichor_wiki:wiki_tree', {
+        tree: children,
+        label: 'Pages under @title'|t({'@title': page.title}),
+      }, with_context = false) }}
+    </section>
+  {% endif %}
+
+  {#
+    Rendered whenever there is anything to render, including on a page whose
+    own body is empty — an empty page that six others point at is exactly the
+    page worth writing next, and hiding that is hiding the signal.
+  #}
+  {% if backlinks|default([]) is not empty %}
+    <section class="petrichor-wiki-page__section">
+      <h2 class="petrichor-wiki-page__section-title">{{ 'What links here'|t }}</h2>
+      {{ include('petrichor_wiki:wiki_tree', {
+        tree: backlinks,
+        label: 'Pages linking to @title'|t({'@title': page.title}),
+      }, with_context = false) }}
+      {% if backlinks_note|default(null) %}
+        <p class="petrichor-wiki-page__note">{{ backlinks_note }}</p>
+      {% endif %}
+      {% if backlinks_url|default(null) %}
+        <p class="petrichor-wiki-page__more">
+          <a href="{{ backlinks_url }}">{{ 'See every page that links here'|t }}</a>
+        </p>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {# Last, and quiet. It is a caveat about the two lists above, not news. #}
+  {% if note|default(null) %}
+    <p class="petrichor-wiki-page__note">{{ note }}</p>
+  {% endif %}
+
+</article>

@@ -1,0 +1,8 @@
+name: 'Petrichor Memory'
+type: module
+description: 'Persistent agent memory: a queryable fact store with remember/recall/forget MCP tools. Scoped global or per-project, typed, agent-attributed.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - petrichor:petrichor_projects

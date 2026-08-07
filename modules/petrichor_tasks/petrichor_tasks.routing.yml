@@ -1,0 +1,7 @@
+petrichor_tasks.settings:
+  path: '/admin/structure/petrichor/task'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorEntitySettingsForm'
+    _title: 'Task settings'
+  requirements:
+    _permission: 'administer petrichor'

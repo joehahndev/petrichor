@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * @file
+ * Keeps the wiki link index in step with page saves.
+ *
+ * The index is derived data, so these hooks are the only thing standing between
+ * a page body and its backlinks. They are deliberately thin: every decision
+ * lives in WikiLinkService, which is also what makes the index rebuildable
+ * without them (see WikiLinkService::rebuildAll(), the repair and install
+ * path).
+ *
+ * Note for whoever owns the page tree: dangling `parent` references also need a
+ * hook here — deleting a page currently leaves its children reachable from
+ * nothing, since they are neither roots nor children of anything that exists.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\petrichor_wiki\WikiLinkService;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for petrichor_wiki_page.
+ */
+function petrichor_wiki_petrichor_wiki_page_insert(ContentEntityInterface $page): void {
+  petrichor_wiki_link_service()->indexPage($page);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for petrichor_wiki_page.
+ *
+ * The body comparison is the point: a rename, a re-parent or a weight change
+ * must not rescan a 40 KB body, and — more importantly — must not rewrite link
+ * rows, because rewriting them would invalidate backlink caches for every
+ * target the page mentions on an edit that changed no links at all.
+ *
+ * Missing original values are treated as a changed body rather than an
+ * unchanged one: reindexing a page needlessly costs one parse, while skipping
+ * one leaves the index quietly wrong.
+ */
+function petrichor_wiki_petrichor_wiki_page_update(ContentEntityInterface $page): void {
+  $original = $page->getOriginal();
+  $body_changed = !$original
+    || (string) $original->get('body')->value !== (string) $page->get('body')->value;
+  petrichor_wiki_link_service()->indexPage($page, $body_changed);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for petrichor_wiki_page.
+ */
+function petrichor_wiki_petrichor_wiki_page_delete(ContentEntityInterface $page): void {
+  petrichor_wiki_link_service()->forgetPage($page);
+}
+
+/**
+ * The wiki link service.
+ *
+ * \Drupal::service() rather than injection because these are procedural hooks;
+ * everything below the call is constructor-injected.
+ */
+function petrichor_wiki_link_service(): WikiLinkService {
+  return \Drupal::service('petrichor_wiki.link_service');
+}

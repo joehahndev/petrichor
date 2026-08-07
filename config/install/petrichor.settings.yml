@@ -1,0 +1,4 @@
+# Guest posture is the default: installing the suite changes nothing about
+# how the host site looks. Immersion is opt-in, at
+# /admin/config/user-interface/petrichor.
+use_workspace_theme: false

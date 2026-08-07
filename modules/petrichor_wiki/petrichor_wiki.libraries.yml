@@ -1,0 +1,8 @@
+# Attached from the Markdown filter result, not from a /kb route: the Markdown
+# format is shared, so a task description or a worklog comment can render a wiki
+# link on a page that knows nothing about the wiki.
+wikilink:
+  version: VERSION
+  css:
+    component:
+      css/wikilink.css: {}

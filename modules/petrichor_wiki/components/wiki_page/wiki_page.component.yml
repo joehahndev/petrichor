@@ -1,0 +1,72 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Wiki page
+status: experimental
+description: 'One knowledge-base page laid out for reading: where it sits, who wrote it, the prose, what is under it, and what points at it. Ships no JavaScript. The body arrives as a slot rather than a prop because it is a render array — the markdown filter resolves wiki links during processing and returns their cache tags, and a string prop would strand them.'
+
+props:
+  type: object
+  required:
+    - page
+  properties:
+    page:
+      type: object
+      title: Page
+      description: 'The page itself. Deliberately does not carry the body — see the `body` slot. This schema is a BC contract from the moment it ships: additive changes only.'
+      properties:
+        title:
+          type: string
+          title: Title
+          description: 'Used for accessible names only. The visible <h1> is the page title supplied by the route, so this component starts its headings at <h2>.'
+        author_name:
+          type: ['string', 'null']
+          title: Author name
+        author_is_agent:
+          type: boolean
+          title: Author is an agent
+          description: 'Derived from the account''s roles by ProvenanceTrait, never from the body — content cannot claim its own authorship.'
+        changed:
+          type: ['string', 'null']
+          title: Last changed
+          description: 'ISO 8601, for the <time datetime> attribute. Machine-facing.'
+        changed_label:
+          type: ['string', 'null']
+          title: Last changed, readable
+          description: 'Formatted server-side in the reader''s timezone, which is why any page rendering this carries the `timezone` cache context.'
+    breadcrumb:
+      type: array
+      title: Breadcrumb
+      description: 'Root first, this page last. The last node carries a null url and renders as the current item. Each entry is a node of petrichor_wiki:wiki_tree.'
+      items:
+        type: object
+    children:
+      type: array
+      title: Child pages
+      description: 'Direct children, in weight order. Each entry is a node of petrichor_wiki:wiki_tree.'
+      items:
+        type: object
+    backlinks:
+      type: array
+      title: Inbound links
+      description: 'Pages linking here, capped for the inline list. Each entry is a node of petrichor_wiki:wiki_tree.'
+      items:
+        type: object
+    backlinks_url:
+      type: ['string', 'null']
+      title: Full backlinks list
+      description: 'Set only when more inbound links exist than are shown.'
+    backlinks_note:
+      type: ['string', 'null']
+      title: Backlinks truncation note
+      description: 'WikiService''s own wording, e.g. "showing 25 of 61 pages that link here". Rendered verbatim rather than recomposed — the same fact must not read one way to a human and another to an agent.'
+    note:
+      type: ['string', 'null']
+      title: Navigation note
+      description: 'Set when the page tree hit its cap and the breadcrumb or child list may therefore be incomplete. Rare, and worth saying out loud when it happens.'
+
+slots:
+  body:
+    title: Body
+    description: 'The rendered page. A `processed_text` render array, never a string.'
+  page_actions:
+    title: Page actions
+    description: 'Controls beside the page metadata — Edit, and whatever a host site adds. Empty for a reader with no update access.'

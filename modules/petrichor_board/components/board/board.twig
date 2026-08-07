@@ -1,0 +1,34 @@
+{#
+/**
+ * @file
+ * Kanban board root.
+ *
+ * data-petrichor-board, data-petrichor-csrf and .petrichor-board__error are a
+ * binding contract with board.js — it selects on them verbatim. Read
+ * README.md before renaming or restructuring anything below.
+ */
+#}
+<div {{ attributes.addClass('petrichor-board')
+  .setAttribute('data-petrichor-board', '')
+  .setAttribute('data-petrichor-csrf', csrf_token) }}>
+
+  <div class="petrichor-board__bar">
+    <h2 class="petrichor-board__project">{{ project.title }}</h2>
+    {% block header_actions %}{% endblock %}
+  </div>
+
+  {# Rendered empty rather than omitted: a live region inserted into the DOM at
+     announcement time is not reliably read. board.css keeps it zero-height
+     while :empty instead of hiding it, which would drop it from the
+     accessibility tree. #}
+  <p class="petrichor-board__error" role="status" aria-live="polite"></p>
+
+  <div class="petrichor-board__columns">
+    {% for column in columns %}
+      {{ include('petrichor_board:column', {
+        column: column,
+        empty_text: empty_text|default('Nothing here'|t),
+      }, with_context = false) }}
+    {% endfor %}
+  </div>
+</div>

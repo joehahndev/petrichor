@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Petrichor Memory.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_schema().
+ *
+ * Recall recency lives in a side table, not on the entity — otherwise every
+ * recall (a read) becomes an entity save (a write), churning caches and the
+ * changed timestamp that conflict detection relies on.
+ */
+function petrichor_memory_schema(): array {
+  $schema['petrichor_memory_recall'] = [
+    'description' => 'Tracks when each memory was last recalled.',
+    'fields' => [
+      'memory_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'last_recalled' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['memory_id'],
+  ];
+  return $schema;
+}

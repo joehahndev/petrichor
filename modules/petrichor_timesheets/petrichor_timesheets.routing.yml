@@ -1,0 +1,7 @@
+petrichor_timesheets.settings:
+  path: '/admin/structure/petrichor/timesheet'
+  defaults:
+    _form: 'Drupal\petrichor\Form\PetrichorEntitySettingsForm'
+    _title: 'Timesheet settings'
+  requirements:
+    _permission: 'administer petrichor'

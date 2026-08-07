@@ -1,0 +1,5 @@
+entity.petrichor_milestone.collection:
+  title: 'Milestones'
+  route_name: entity.petrichor_milestone.collection
+  parent: petrichor.dashboard
+  weight: 10

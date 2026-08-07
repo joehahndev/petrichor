@@ -1,0 +1,41 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Board column
+status: experimental
+description: 'One status column of the kanban board. The <ul> inside is the Sortable drop zone; the component itself ships no JavaScript.'
+
+props:
+  type: object
+  required:
+    - column
+  properties:
+    column:
+      type: object
+      title: Column
+      description: One status column as built by BoardService::getBoard().
+      properties:
+        id:
+          type: string
+          title: Status machine name
+          description: A key of TaskService::statusOptions(). Sent verbatim as the `status` field of a move request.
+        label:
+          type: string
+          title: Human label
+        cards:
+          type: array
+          title: Cards
+          description: Card objects in display order; each is the `card` prop of petrichor_board:card.
+          items:
+            type: object
+        total:
+          type: integer
+          title: Total matching tasks
+          description: Total in this status, which may exceed the number of cards rendered.
+        note:
+          type: ['string', 'null']
+          title: Truncation note
+          description: 'Set when the column is capped, e.g. "showing 25 of 61".'
+    empty_text:
+      type: string
+      title: Empty column text
+      examples:
+        - 'Nothing here'

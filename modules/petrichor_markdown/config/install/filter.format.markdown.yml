@@ -1,0 +1,15 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - petrichor_markdown
+name: Markdown
+format: markdown
+weight: 0
+filters:
+  petrichor_markdown:
+    id: petrichor_markdown
+    provider: petrichor_markdown
+    status: true
+    weight: 0
+    settings: {  }

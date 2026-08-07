@@ -1,0 +1,147 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for Petrichor Wiki.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityStorageException;
+use Drupal\Core\Utility\UpdateException;
+use Drupal\petrichor_wiki\BacklinkStorage;
+
+/**
+ * Implements hook_schema().
+ *
+ * The link and title tables are derived data, rebuilt from page bodies on
+ * save. They are deliberately not entity fields: editing page A must not touch
+ * page B's `changed`, which conflict detection and the activity feed key on.
+ * Same reasoning as petrichor_memory_recall and petrichor_board_order.
+ */
+function petrichor_wiki_schema(): array {
+  return BacklinkStorage::schema();
+}
+
+/**
+ * Implements hook_install().
+ *
+ * Indexes anything already present. The module can be enabled on a site whose
+ * pages predate it — an empty index would silently report no backlinks
+ * anywhere, which reads as "nothing links here" rather than "not indexed yet".
+ */
+function petrichor_wiki_install(): void {
+  \Drupal::service('petrichor_wiki.link_service')->rebuildAll();
+}
+
+/**
+ * Creates the wiki link tables and indexes existing pages.
+ *
+ * Hook_schema() only runs at install, so a module that gains a table in a
+ * later release must create it here too — otherwise the tables exist on new
+ * sites and are missing on every site that already had the module, which is
+ * the harder case to notice.
+ */
+function petrichor_wiki_update_11002(): string {
+  $schema = \Drupal::database()->schema();
+  $created = 0;
+  foreach (BacklinkStorage::schema() as $name => $spec) {
+    if (!$schema->tableExists($name)) {
+      $schema->createTable($name, $spec);
+      $created++;
+    }
+  }
+  $indexed = \Drupal::service('petrichor_wiki.link_service')->rebuildAll();
+  return (string) t('Created @tables link table(s); indexed wiki links on @count page(s).', [
+    '@tables' => $created,
+    '@count' => $indexed,
+  ]);
+}
+
+/**
+ * Converts wiki pages to a revisionable entity type.
+ *
+ * Batched because it has to be.
+ * SqlContentEntityStorageSchema::onEntityTypeUpdate() refuses any shared-table
+ * structure change outside a batch context, and adding a revision table is one;
+ * updateFieldableEntityType() then refuses a NULL sandbox once the base table
+ * holds rows. Note the second guard only bites when there is data — this update
+ * passes on an empty database and fails on a real one, which is why it is
+ * written for the real one.
+ *
+ * What core does with the data: every existing page is copied into freshly
+ * created tmp_* tables and given exactly one revision, with revision_id seeded
+ * equal to its entity id and revision_default = 1. The live tables are only
+ * renamed away on the final pass, so an interrupted run leaves the KB exactly
+ * as it was. The copy goes through SqlContentEntityStorage::restore(), which
+ * bypasses pre/post-save hooks by design — so `changed` is preserved (the
+ * timestamp conflict detection and the activity feed key on) and no derived
+ * side table is populated. Anything derived needs its own post_update.
+ *
+ * The seed revisions have no author, no revision timestamp and no log message.
+ * There is no pre-conversion history to recover and none is invented here;
+ * whatever renders the history has to show that gracefully.
+ *
+ * ONE-WAY. Core explicitly refuses to convert a revisionable entity type back
+ * with data present, so there is no downgrade hook to write — recovery from a
+ * bad run is a database restore. Run it with the site in maintenance mode,
+ * after a dump, via `drush updb` (update.php in a browser will time out on a
+ * long pass), then check that petrichor_wiki_page and
+ * petrichor_wiki_page_revision hold the same number of rows.
+ */
+function petrichor_wiki_update_11001(array &$sandbox): ?string {
+  // Re-read from code on every pass rather than caching across the batch: the
+  // sandbox is serialized between requests on update.php, and entity type and
+  // field storage definitions are not things to round-trip through a session.
+  // This is also what core's own coverage does — see
+  // FieldableEntityDefinitionUpdateTest::testFieldableEntityTypeUpdates().
+  $entity_type = \Drupal::entityTypeManager()->getDefinition('petrichor_wiki_page');
+  $field_storage_definitions = \Drupal::service('entity_field.manager')
+    ->getFieldStorageDefinitions('petrichor_wiki_page');
+
+  // Own key, not core's 'progress': core never sets that when the base table is
+  // empty, and this block must run exactly once either way.
+  if (!isset($sandbox['petrichor_pages'])) {
+    // Refuse to start rather than half-convert. Without the first check the
+    // update would silently no-op against a codebase that had not been deployed
+    // yet; without the second, re-running after a partial or manual conversion
+    // would try to copy into a table that already holds the copies.
+    if (!$entity_type->isRevisionable()) {
+      throw new UpdateException('petrichor_wiki_page is not revisionable in code. Deploy the WikiPage entity change before running this update.');
+    }
+    if (\Drupal::database()->schema()->tableExists($entity_type->getRevisionTable())) {
+      throw new UpdateException(sprintf('%s already exists — this conversion has already run.', $entity_type->getRevisionTable()));
+    }
+
+    $sandbox['petrichor_pages'] = (int) \Drupal::database()
+      ->select('petrichor_wiki_page', 'w')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+  }
+
+  try {
+    // Pass the hook's own $sandbox straight through, untouched. Core keys its
+    // first-pass work off $sandbox['progress'] and stores the temporary table
+    // mapping in there; rebuilding or resetting it mid-batch makes core create
+    // a second set of temporary tables while the first set is still being
+    // written to.
+    \Drupal::entityDefinitionUpdateManager()
+      ->updateFieldableEntityType($entity_type, $field_storage_definitions, $sandbox);
+  }
+  catch (EntityStorageException $e) {
+    // Core has already dropped its temporary tables and left both the live
+    // tables and the last-installed definition untouched, so the site still
+    // works. Surface the real cause instead of a generic update failure.
+    throw new UpdateException('Wiki page revision conversion failed and was rolled back: ' . $e->getMessage(), 0, $e);
+  }
+
+  if ($sandbox['#finished'] < 1) {
+    return NULL;
+  }
+
+  return sprintf(
+    'Converted %d wiki pages to revisionable; each has one seed revision with no author or log message. The pre-conversion tables were kept as old_* backups unless $settings[\'entity_update_backup\'] is FALSE — decide deliberately whether to drop them, they are a full copy of the KB.',
+    $sandbox['petrichor_pages']
+  );
+}
