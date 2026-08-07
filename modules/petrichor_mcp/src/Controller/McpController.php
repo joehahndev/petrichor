@@ -105,16 +105,42 @@ final class McpController extends ControllerBase {
 
   /**
    * Executes a tools/call request and wraps the result in MCP content.
+   *
+   * Deliberately NOT pretty-printed. The only consumer of this text is a
+   * language model, which pays for the indentation by the token and gains
+   * nothing from it: on a real context bundle, JSON_PRETTY_PRINT cost 5,035
+   * characters — about 1,258 tokens, 36% of the whole response — purely in
+   * whitespace. Anything reading this by eye can pipe it through `jq`.
+   *
+   * JSON_UNESCAPED_SLASHES stays: every path in a response would otherwise
+   * carry a backslash per slash, which is both larger and harder to read.
+   *
+   * Every call is logged. Nothing else records what an agent did here — the
+   * entity `changed` timestamp says something happened, never what asked.
    */
   protected function callTool(array $params): array {
-    $name = $params['name'] ?? '';
+    $name = (string) ($params['name'] ?? '');
     $args = $params['arguments'] ?? [];
+    $started = microtime(TRUE);
     $data = $this->tools->call($name, is_array($args) ? $args : []);
+    $text = json_encode($data, JSON_UNESCAPED_SLASHES);
+
+    // Metadata only. Arguments and responses carry real content, and a log
+    // that quietly accumulates it is a second copy of the data with none of
+    // the access control.
+    $this->getLogger('petrichor_mcp')->info(
+      'tool @tool by @user in @ms ms, @bytes bytes', [
+        '@tool' => $name,
+        '@user' => $this->currentUser()->getAccountName() ?: 'anonymous',
+        '@ms' => number_format((microtime(TRUE) - $started) * 1000, 1),
+        '@bytes' => strlen($text),
+      ]);
+
     return [
       'content' => [
         [
           'type' => 'text',
-          'text' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+          'text' => $text,
         ],
       ],
       'isError' => FALSE,
