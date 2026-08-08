@@ -45,10 +45,11 @@ class TaskToolProvider extends McpToolProviderBase {
     return [
       [
         'name' => 'list_tasks',
-        'description' => 'List tasks. Filters: project_id, status, assignee, due_before, milestone_id, parent_id, blocked. Results are capped — when the response carries next_offset, pass it back as offset to page through the rest.',
+        'description' => 'List tasks. Filters: query (find one by name), project_id, status, assignee, due_before, milestone_id, parent_id, blocked. Results are capped — when the response carries next_offset, pass it back as offset to page through the rest.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [
+            'query' => ['type' => 'string', 'description' => 'Substring match on title, description or tags'],
             'project_id' => ['type' => 'integer'],
             'status' => $task_fields['status'],
             'assignee' => $task_fields['assignee'],

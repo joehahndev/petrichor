@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\petrichor_tasks;
 
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\petrichor\ConcurrencyGuardTrait;
@@ -31,6 +32,7 @@ class TaskService {
     protected EntityTypeManagerInterface $entityTypeManager,
     protected EntityFieldManagerInterface $entityFieldManager,
     protected TimeInterface $time,
+    protected Connection $database,
     protected ?MemoryService $memory = NULL,
   ) {}
 
@@ -75,6 +77,20 @@ class TaskService {
     }
     if (!empty($filters['status'])) {
       $query->condition('status', $filters['status']);
+    }
+    if (!empty($filters['query'])) {
+      // How a caller gets from a task's name to its id. Without it the only
+      // route is paging the whole project and reading titles — the same gap
+      // list_projects had, and the reason it now takes a query too.
+      //
+      // Bodies are in scope here, unlike the passive matching in
+      // MemoryService::relatedTo(): this is a search somebody asked for, so a
+      // hit in a description is a result rather than noise.
+      $like = '%' . $this->database->escapeLike((string) $filters['query']) . '%';
+      $query->condition($query->orConditionGroup()
+        ->condition('label', $like, 'LIKE')
+        ->condition('description', $like, 'LIKE')
+        ->condition('tags', $like, 'LIKE'));
     }
     if (!empty($filters['assignee'])) {
       $query->condition('assignee', (int) $filters['assignee']);
