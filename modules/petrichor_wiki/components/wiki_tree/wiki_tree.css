@@ -75,8 +75,14 @@
      page. */
   display: flex;
   align-items: center;
-  text-decoration: none;
-  color: inherit;
+  /* Colour and underline are deliberately NOT reset here.
+     `text-decoration: none; color: inherit` used to be, and in a host theme it
+     rendered every row at exactly the body colour with no underline — measured
+     against Olivero, a list of links that reads as inert prose. Whether a link
+     looks like a link belongs to the theme, not to a contrib module; all this
+     file does is soften the rule so a dense column does not become stripes. */
+  text-decoration-color: var(--petrichor-border, var(--petrichor-local-line));
+  text-underline-offset: 0.15em;
   font-size: var(--petrichor-text-base, 1rem);
   line-height: 1.4;
   min-block-size: 2.25rem;
@@ -85,8 +91,9 @@
 
 a.petrichor-wiki-tree__link:hover,
 a.petrichor-wiki-tree__link:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration-line: underline;
+  /* Full strength on hover — the softened rule above is the resting state. */
+  text-decoration-color: currentColor;
 }
 
 a.petrichor-wiki-tree__link:focus-visible {
@@ -107,9 +114,13 @@ a.petrichor-wiki-tree__link:focus-visible {
 }
 
 /* Not a link — the current crumb, or a wanted page this viewer cannot create.
-   Full-strength text: it is still the thing being named. */
+   Full-strength text: it is still the thing being named. Colour is stated
+   because these are not anchors and must not pick up a link colour if a theme
+   styles the class rather than the element. */
 .petrichor-wiki-tree__link--plain {
   cursor: default;
+  color: inherit;
+  text-decoration-line: none;
 }
 
 /* ---------------------------------------------------------------------------
