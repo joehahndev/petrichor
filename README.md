@@ -293,12 +293,28 @@ This is a `-dev` release. The honest limits:
 
 - **It has had one user.** Every ergonomic decision came from watching one
   person work, and it will show in the places nobody else has pushed on yet.
-- **Databases:** the automated suite runs on MariaDB 11.8, and the reference
-  site runs SQLite. PostgreSQL is untested rather than unsupported.
-- **No security advisory coverage** while it is `-dev`.
+- **Databases:** the full suite runs green on **MariaDB 11.8 and PostgreSQL
+  16**, and the reference site runs SQLite. MySQL proper is untested, though it
+  is the closest relative of the two that are.
+- **No security advisory coverage** while it is `-dev`. Report anything you
+  find in the issue queue and it gets fixed in the open.
 
-Two things that used to be listed here are now checked by the test suite rather
-than hoped for:
+### Updating
+
+`-dev` means the branch moves under you, so the policy is worth stating:
+**anything that changes stored data ships a `hook_update_N`.** Take a newer
+commit, run `drush updb`, carry on — you should never have to uninstall and
+reinstall to move forward, and config shipped in `config/install` gets an
+update hook too, since Drupal only installs it once.
+
+If a change ever cannot be done that way, the release note will say so in as
+many words rather than letting you find out.
+
+Three update hooks exist so far, in `petrichor_memory` and `petrichor_wiki`.
+
+### Verified rather than hoped for
+
+Two things that used to be listed as caveats are now checked by the test suite:
 
 - **Every module installs, uninstalls and reinstalls cleanly**, and each has
   help you can read from the Extend page — Drupal's own `GenericModuleTestBase`

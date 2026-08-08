@@ -200,7 +200,15 @@ final class BacklinkStorage {
     $select->addField('t', 'title_key');
     $select->addExpression('COUNT(t.page_id)', 'pages');
     $select->groupBy('t.title_key');
-    $select->havingCondition('pages', 1, '>');
+    // having(), not havingCondition(): the latter escapes its first argument
+    // as a field name and turns the aggregate into "COUNTt"."page_id".
+    //
+    // And the aggregate is repeated rather than referred to by its `pages`
+    // alias, because PostgreSQL evaluates HAVING before the select list
+    // exists, so `HAVING pages > 1` is an undefined-column error there.
+    // MySQL, MariaDB and SQLite all accept the alias, which is exactly why
+    // this survived every run until the suite was pointed at PostgreSQL.
+    $select->having('COUNT(t.page_id) > :petrichor_min', [':petrichor_min' => 1]);
     $keys = $select->execute()->fetchCol();
     if (!$keys) {
       return [];
