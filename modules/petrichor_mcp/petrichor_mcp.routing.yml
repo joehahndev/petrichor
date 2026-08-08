@@ -5,6 +5,18 @@ petrichor_mcp.endpoint:
   methods: [POST]
   requirements:
     _permission: 'access petrichor mcp'
+    # Every tool call is a POST to one URL with a JSON body, and the body is
+    # decoded whatever Content-Type claims it is. Without this, a page on
+    # another origin could form-POST `enctype="text/plain"` here, the browser
+    # would attach the victim's session cookie, and their agent's write tools
+    # would run as them — classic JSON CSRF.
+    #
+    # Core only enforces this when the request actually carries a session
+    # cookie (see CsrfRequestHeaderAccessCheck::access), so key_auth and
+    # basic_auth clients are unaffected and need no token. That is why cookie
+    # auth can stay: it is useful for a first-party UI, which can fetch a
+    # token from /session/token.
+    _csrf_request_header_token: 'TRUE'
   options:
     no_cache: TRUE
     _auth: ['key_auth', 'basic_auth', 'cookie']
