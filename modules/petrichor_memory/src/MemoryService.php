@@ -194,13 +194,13 @@ class MemoryService {
    * Short words and a handful of common ones are dropped because they match
    * everything and rank nothing. The list is deliberately small: this is
    * substring matching over a few hundred rows, not a search index, and a
-   * longer stopword list would be pretending otherwise.
+   * longer stop-word list would be pretending otherwise.
    *
    * @return string[]
    *   Lowercased terms, deduplicated; empty when the title says too little.
    */
   protected function terms(string $text): array {
-    $stopwords = [
+    $stop_words = [
       'about', 'after', 'also', 'been', 'before', 'both', 'each', 'from',
       'have', 'into', 'just', 'like', 'made', 'make', 'more', 'only', 'onto',
       'over', 'some', 'such', 'than', 'that', 'then', 'their', 'there', 'this',
@@ -208,7 +208,7 @@ class MemoryService {
       'with', 'your',
     ];
     $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower(trim($text)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-    $terms = array_filter($words, fn(string $w) => mb_strlen($w) >= 4 && !in_array($w, $stopwords, TRUE));
+    $terms = array_filter($words, fn(string $w) => mb_strlen($w) >= 4 && !in_array($w, $stop_words, TRUE));
     return array_values(array_unique($terms));
   }
 

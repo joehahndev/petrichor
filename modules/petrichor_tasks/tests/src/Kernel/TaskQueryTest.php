@@ -111,7 +111,7 @@ class TaskQueryTest extends KernelTestBase {
     $id = $this->task('Opaque title', ['tags' => ['accessibility', 'forms']]);
     $this->task('Something else');
 
-    $this->assertSame([$id], array_column($this->tasks->listTasks(['query' => 'accessib'])['items'], 'id'));
+    $this->assertSame([$id], array_column($this->tasks->listTasks(['query' => 'access'])['items'], 'id'));
   }
 
   /**

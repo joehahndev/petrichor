@@ -210,7 +210,7 @@ class McpEndpointTest extends BrowserTestBase {
     [, $body] = $this->post($this->agent([
       'access petrichor mcp',
       'view petrichor content',
-    ]), ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'nope/notreal']);
+    ]), ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'unknown/method']);
 
     $this->assertArrayHasKey('error', $body);
   }
