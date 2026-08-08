@@ -1,0 +1,108 @@
+{#
+/**
+ * @file
+ * The Petrichor dashboard.
+ *
+ * Two states, and the empty one is the one that matters. A site builder who
+ * has just run `drush en` lands here, and the old version of this page showed
+ * them a bullet list of entity types with zero counts — accurate, and no help
+ * at all. So when there are no projects this says what to do first and why,
+ * and nothing else.
+ *
+ * Every link is passed in already built. A dashboard in the base module cannot
+ * name a route from petrichor_board or petrichor_wiki without crashing on a
+ * site that did not install them, so the controller decides what exists and
+ * this file only renders it.
+ */
+#}
+<div {{ attributes.addClass('petrichor-dashboard') }}>
+
+  {% if projects is empty %}
+
+    <div class="petrichor-dashboard__start">
+      <h2 class="petrichor-dashboard__start-title">{{ 'Start with a project'|t }}</h2>
+      <p class="petrichor-dashboard__start-lede">
+        {{ 'A project is the container everything else lives in — tasks, wiki pages, time entries, and anything an AI assistant remembers. Nothing can be created until one exists.'|t }}
+      </p>
+      {% if create_url %}
+        <p class="petrichor-dashboard__start-action">
+          <a href="{{ create_url }}" class="petrichor-dashboard__button">{{ 'Create your first project'|t }}</a>
+        </p>
+      {% else %}
+        <p class="petrichor-dashboard__start-lede">
+          {{ 'You do not have permission to create one — ask a site administrator for the "Manage Petrichor content" permission.'|t }}
+        </p>
+      {% endif %}
+    </div>
+
+  {% else %}
+
+    <div class="petrichor-dashboard__bar">
+      <h2 class="petrichor-dashboard__heading">{{ 'Projects'|t }}</h2>
+      {% if create_url %}
+        <a href="{{ create_url }}" class="petrichor-dashboard__button">{{ 'New project'|t }}</a>
+      {% endif %}
+    </div>
+
+    <ul class="petrichor-dashboard__projects">
+      {% for project in projects %}
+        <li class="petrichor-dashboard__project">
+          <a href="{{ project.url }}" class="petrichor-dashboard__project-title">{{ project.title }}</a>
+
+          {# Client and status are the two things that tell projects apart in a
+             list of them. Each is omitted when empty rather than rendered as a
+             blank line. #}
+          <p class="petrichor-dashboard__project-meta">
+            {% if project.client %}
+              <span class="petrichor-dashboard__client">{{ project.client }}</span>
+            {% endif %}
+            {% if project.status %}
+              <span class="petrichor-dashboard__status petrichor-dashboard__status--{{ project.status_id }}">{{ project.status }}</span>
+            {% endif %}
+          </p>
+
+          {# open_tasks is NULL, not 0, when the tasks module is not installed:
+             "no open tasks" and "this site does not have tasks" are different
+             facts and must not render the same. #}
+          {% if project.open_tasks is not null %}
+            <p class="petrichor-dashboard__count">
+              {{ '@count open'|t({'@count': project.open_tasks}) }}
+            </p>
+          {% endif %}
+
+          {% if project.actions %}
+            <p class="petrichor-dashboard__actions">
+              {% for action in project.actions %}
+                <a href="{{ action.url }}" class="petrichor-dashboard__action">{{ action.title }}</a>
+              {% endfor %}
+            </p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if note %}
+      <p class="petrichor-dashboard__note">
+        {{ note }}
+        {% if all_projects_url %}
+          <a href="{{ all_projects_url }}">{{ 'All projects'|t }}</a>
+        {% endif %}
+      </p>
+    {% endif %}
+
+  {% endif %}
+
+  {% if links %}
+    <nav class="petrichor-dashboard__links" aria-label="{{ 'Workspace'|t }}">
+      {% for link in links %}
+        <a href="{{ link.url }}" class="petrichor-dashboard__link">
+          <span class="petrichor-dashboard__link-title">{{ link.title }}</span>
+          {% if link.description %}
+            <span class="petrichor-dashboard__link-description">{{ link.description }}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+
+</div>

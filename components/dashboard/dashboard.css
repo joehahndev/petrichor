@@ -1,0 +1,227 @@
+/**
+ * @file
+ * The Petrichor dashboard.
+ *
+ * Same token posture as the board and wiki components: every colour reads a
+ * petrichor_theme token first and a private `--petrichor-local-*` currentColor
+ * mix second, so the page adopts the host theme's palette in light and dark
+ * instead of imposing one. Space and radius fallbacks are the theme's own
+ * numbers, so the geometry is identical with or without it.
+ *
+ * The `--petrichor-local-*` names are private: never part of the theme's token
+ * contract, only ever the fallback arm of a var() on a contract token.
+ *
+ * Nothing here sets a link colour or removes an underline. The wiki tree tried
+ * that and rendered a column of links as inert body text in every host theme;
+ * whether a link looks like a link belongs to the theme.
+ */
+
+:where(.petrichor-dashboard) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+  --petrichor-local-raised: color-mix(in sRGB, currentColor 5%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-dashboard) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   First run.
+   ---------------------------------------------------------------------------
+   The only thing on the page when there are no projects, and deliberately
+   wide-margined and quiet: there is exactly one thing to do, so the layout
+   should not offer a second place to look.
+   --------------------------------------------------------------------------- */
+
+.petrichor-dashboard__start {
+  max-inline-size: min(100%, 40rem);
+  margin-block: var(--petrichor-space-4, 1.5rem);
+  padding: var(--petrichor-space-5, 2rem);
+  border: 1px dashed var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius-lg, 12px);
+}
+
+.petrichor-dashboard__start-title {
+  margin-block: 0 var(--petrichor-space-2, 0.5rem);
+  font-size: var(--petrichor-text-xl, 1.25rem);
+}
+
+.petrichor-dashboard__start-lede {
+  margin-block: 0 var(--petrichor-space-3, 1rem);
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  /* Prose measure: this is the one paragraph on the page anybody reads in
+     full, so it is the one that has to be a comfortable line length. */
+  max-inline-size: var(--petrichor-measure, 62ch);
+}
+
+.petrichor-dashboard__start-action {
+  margin-block: var(--petrichor-space-3, 1rem) 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Projects.
+   --------------------------------------------------------------------------- */
+
+.petrichor-dashboard__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--petrichor-space-3, 1rem);
+  margin-block-end: var(--petrichor-space-3, 1rem);
+}
+
+.petrichor-dashboard__heading {
+  margin: 0;
+  font-size: var(--petrichor-text-lg, 1.125rem);
+}
+
+.petrichor-dashboard__projects {
+  display: grid;
+  /* auto-fill, not auto-fit: with one project, auto-fit would stretch a single
+     card the full width of the page and make it read as a banner. */
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--petrichor-space-3, 1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.petrichor-dashboard__project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--petrichor-space-1, 0.25rem);
+  padding: var(--petrichor-space-3, 1rem);
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-surface, transparent);
+}
+
+.petrichor-dashboard__project-title {
+  font-size: var(--petrichor-text-base, 1rem);
+  font-weight: 600;
+}
+
+.petrichor-dashboard__project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--petrichor-space-2, 0.5rem);
+  margin: 0;
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-dashboard__client {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+}
+
+/* A pill, not a colour code. Status is also spelled out in the text, because a
+   colour alone is not a distinction anyone can rely on. */
+.petrichor-dashboard__status {
+  padding: 0.0625rem var(--petrichor-space-2, 0.5rem);
+  white-space: nowrap;
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: 999px;
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-dashboard__status--open {
+  border-style: solid;
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+}
+
+/* Closed and archived recede rather than alarm: neither is a problem, and a
+   finished project should not shout on a page about current work. */
+.petrichor-dashboard__status--closed,
+.petrichor-dashboard__status--archived {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border-style: dashed;
+}
+
+.petrichor-dashboard__count {
+  margin: 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.petrichor-dashboard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petrichor-space-3, 1rem);
+  /* Pushed to the bottom so action rows line up across cards of unequal
+     height — a ragged row of links reads as a mistake. */
+  margin: auto 0 0;
+  padding-block-start: var(--petrichor-space-2, 0.5rem);
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+.petrichor-dashboard__note {
+  margin-block: var(--petrichor-space-3, 1rem) 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+/* ---------------------------------------------------------------------------
+   Workspace links.
+   --------------------------------------------------------------------------- */
+
+.petrichor-dashboard__links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--petrichor-space-3, 1rem);
+  margin-block-start: var(--petrichor-space-5, 2rem);
+  padding-block-start: var(--petrichor-space-4, 1.5rem);
+  border-block-start: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+}
+
+.petrichor-dashboard__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--petrichor-space-1, 0.25rem);
+  /* 44px touch floor. These are the only targets on an otherwise empty page,
+     so they are also the ones most likely to be aimed at in a hurry. */
+  min-block-size: 2.75rem;
+  padding: var(--petrichor-space-2, 0.5rem) var(--petrichor-space-3, 1rem);
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-surface-raised, var(--petrichor-local-raised));
+}
+
+.petrichor-dashboard__link-title {
+  font-weight: 600;
+}
+
+/* The whole card is one anchor, so a theme that underlines links underlines
+   this sentence too, and an underlined paragraph reads as noise. Dropping the
+   line here is not the mistake the wiki tree made: the title above still
+   carries the theme's own colour and underline, so the affordance is intact
+   and this is supporting text inside it. */
+.petrichor-dashboard__link-description {
+  text-decoration-line: none;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+/* ---------------------------------------------------------------------------
+   The one button.
+   ---------------------------------------------------------------------------
+   Styled as a button because it is the single call to action on a first run,
+   and a text link in an empty panel does not read as the next step. Colours
+   come from the theme's accent where one is defined; without it, a bordered
+   surface in the host theme's own text colour rather than an invented blue.
+   --------------------------------------------------------------------------- */
+
+.petrichor-dashboard__button {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: var(--petrichor-space-4, 1.5rem);
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  font-weight: 600;
+}

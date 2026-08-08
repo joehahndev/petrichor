@@ -1,0 +1,31 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Dashboard
+status: experimental
+description: 'The Petrichor landing page. Its most important state is the empty one: this is the first page somebody sees after installing, and if it does not say what to do next, nothing else about the suite gets a chance to.'
+
+props:
+  type: object
+  properties:
+    projects:
+      type: array
+      title: Projects
+      description: 'Project rows, most recently changed first. Empty renders the first-run state instead of a list.'
+      items:
+        type: object
+    create_url:
+      type: ['string', 'null']
+      title: Create URL
+      description: 'Link to the project add form, or NULL when this user may not create one. NULL suppresses every call to action, so the page never offers a button that would 403.'
+    links:
+      type: array
+      title: Workspace links
+      description: 'Today, the knowledge base, memories — whichever of them are installed. Built by the controller, because a link to a route that does not exist is a crash, not a broken link.'
+      items:
+        type: object
+    note:
+      type: ['string', 'null']
+      title: Truncation note
+      description: 'Set when more projects exist than are shown.'
+    all_projects_url:
+      type: ['string', 'null']
+      title: All projects URL
