@@ -1,6 +1,13 @@
 langcode: en
 status: true
-dependencies: {  }
+# Enforced, because nothing else ties this back to the module that ships it: a
+# comment type depends on the comment module, not on us. Without this the type
+# survives uninstall as orphaned config, and the next install of
+# petrichor_comments fails outright on PreExistingConfigException.
+dependencies:
+  enforced:
+    module:
+      - petrichor_comments
 id: petrichor_worklog
 label: 'Task worklog'
 target_entity_type_id: petrichor_task

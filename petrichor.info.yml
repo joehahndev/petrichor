@@ -3,3 +3,5 @@ type: module
 description: 'Base module for the Petrichor project management suite. Shared entity handlers, permissions, and the PM dashboard.'
 package: 'Petrichor PM'
 core_version_requirement: ^11.1
+dependencies:
+  - drupal:field

@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Tasks module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_tasks_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_tasks') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Tasks module provides the Task entity: status, priority, assignee, due date, estimate, tags, subtasks, and a blocked flag with a note saying what the work is waiting for.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Tracking work') . '</dt>';
+  $output .= '<dd>' . t('Add a task at <em>/pm/task/add</em>. Status moves through backlog, to do, in progress, review and done. Those five values are also the columns of the board, if you enable Petrichor Board — they are read from the field rather than restated, so they cannot drift apart.') . '</dd>';
+  $output .= '<dt>' . t('Blocked work') . '</dt>';
+  $output .= '<dd>' . t('Blocked is deliberately separate from status: a task can be in progress and blocked at the same time. Blocked work sinks to the bottom of the Today view, because the point of that list is what you can act on now.') . '</dd>';
+  $output .= '<dt>' . t('Subtasks') . '</dt>';
+  $output .= '<dd>' . t('A task can have a parent in the same project. A parent in another project, or one that would create a cycle, is refused rather than saved — both failures are silent otherwise, and simply make tasks disappear from the views that should list them.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Tasks module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

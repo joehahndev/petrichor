@@ -8,6 +8,29 @@
 declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_board_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_board') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Board module adds a drag-and-drop kanban board at <em>/pm/board/{project}</em>, built on the sortable library in Drupal core, and a Today view at <em>/pm/today</em>.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('The board') . '</dt>';
+  $output .= '<dd>' . t('Columns are the task status values, read from the task field rather than restated, so the two cannot drift apart. Dragging a card saves immediately. Manual card order is kept in its own table, so reordering a column never touches the task itself — which means it never looks like an edit in the activity feed.') . '</dd>';
+  $output .= '<dt>' . t('Today') . '</dt>';
+  $output .= '<dd>' . t('Collects in-progress work, anything overdue or due within a week, and everything high or urgent. It deliberately does not require due dates: most people do not set them, and an empty answer to "what should I do today" is worse than a slightly generous one. Blocked work sinks to the bottom.') . '</dd>';
+  $output .= '<dt>' . t('In a narrow theme') . '</dt>';
+  $output .= '<dd>' . t('A five-column board is wider than most themes allow their content region, so it scrolls sideways rather than being cut off. If you would rather see all of it at once, the Petrichor settings page can render the workspace full width in the bundled theme, leaving the rest of your site alone.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Board module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}
 
 /**
  * Implements hook_ENTITY_TYPE_update() for petrichor_task.

@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Projects module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_projects_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_projects') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Projects module provides the Project entity, which is the scope everything else in Petrichor hangs off. Tasks, milestones, wiki pages and agent memories all belong to a project, and that shared scope is what lets an AI assistant hydrate a whole working session from a single call.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Creating a project') . '</dt>';
+  $output .= '<dd>' . t('Add one at <em>/pm/project/add</em>, and list them at <em>/pm/projects</em>. Create a project before anything else — the other modules have nowhere to put their content without one.') . '</dd>';
+  $output .= '<dt>' . t('Extending it') . '</dt>';
+  $output .= '<dd>' . t('A project is an ordinary content entity, so you can add fields to it with Field UI and build listings with Views.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Projects module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

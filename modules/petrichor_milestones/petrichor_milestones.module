@@ -9,6 +9,25 @@ declare(strict_types=1);
 
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_milestones_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_milestones') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Milestones module provides a Milestone entity for roadmaps and timelines: a named point in a project with a status and a target date.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Grouping tasks') . '</dt>';
+  $output .= '<dd>' . t('When Petrichor Tasks is also enabled, this module attaches a milestone reference to tasks, so you can group work towards a date without the tasks module having to know that milestones exist. Uninstall this module and the field goes with it.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Milestones module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}
 
 /**
  * Implements hook_entity_base_field_info().

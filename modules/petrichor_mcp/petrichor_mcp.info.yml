@@ -1,10 +1,17 @@
 name: 'Petrichor MCP'
 type: module
-description: 'MCP server (Streamable HTTP, JSON-RPC) exposing Petrichor projects, tasks, and wiki to AI agents.'
+description: 'MCP server (Streamable HTTP, JSON-RPC) exposing whichever Petrichor modules are enabled to AI agents.'
 package: 'Petrichor PM'
 core_version_requirement: ^11.1
+# Only what this module cannot work without. It needs a project, because a
+# context bundle is scoped to one; everything else is discovered at runtime.
+#
+# petrichor_tasks and petrichor_wiki used to be listed here, which made the
+# à-la-carte promise untrue: ContextService injects both with '@?' and
+# McpResources checks hasDefinition() before touching the wiki, so the graceful
+# paths existed but were unreachable. Each submodule registers its own tools
+# through the petrichor_mcp.tool_provider tag, so the tool surface is already
+# exactly what is installed — listing a submodule here only forces it on.
 dependencies:
   - petrichor:petrichor
   - petrichor:petrichor_projects
-  - petrichor:petrichor_tasks
-  - petrichor:petrichor_wiki

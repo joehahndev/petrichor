@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Comments module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_comments_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_comments') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Comments module adds a worklog to every task, and builds the project activity feed from it. An AI assistant appends to the same worklog as it works, so the record of what happened and why sits with the task rather than being split between a chat window and a tracker.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Why a worklog beats a changed date') . '</dt>';
+  $output .= '<dd>' . t('A timestamp says that something moved, and after a bulk import it says that about everything at once. A worklog entry says what happened and why, which is the part anyone reading the project later actually needs.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Comments module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

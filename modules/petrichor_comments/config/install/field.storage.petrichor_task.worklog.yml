@@ -1,9 +1,13 @@
 langcode: en
 status: true
+# See comment.type.petrichor_worklog.yml for why 'enforced' is here.
 dependencies:
   module:
     - comment
     - petrichor_tasks
+  enforced:
+    module:
+      - petrichor_comments
 id: petrichor_task.worklog
 field_name: worklog
 entity_type: petrichor_task

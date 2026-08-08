@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Timesheets module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_timesheets_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_timesheets') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Timesheets module records time entries against tasks, each with a date, an optional kind (development, design, meeting, research, admin) and a summary of what the time went on.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Logging time') . '</dt>';
+  $output .= '<dd>' . t('Entries attach to a task, so hours roll up to the project that task belongs to. An AI assistant can log time as it finishes a piece of work, which is the only moment anyone reliably remembers to capture it.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Timesheets module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

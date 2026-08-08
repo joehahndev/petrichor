@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Memory module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_memory_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_memory') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('AI assistants start every session knowing nothing, so you re-explain the same constraints forever. The Petrichor Memory module gives them somewhere durable to write facts down — decisions, preferences and things learned — typed, tagged, and scoped either to one project or to everything.') . '</p>';
+  $output .= '<p>' . t('The facts live on your site rather than in the configuration directory of one client, so every assistant you connect reads the same ones, and so can you.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Staying in charge of what gets recorded') . '</dt>';
+  $output .= '<dd>' . t('On the Petrichor settings page, choose whether an agent records memories immediately, proposes them for your review, or records only when you explicitly ask. Proposing is the default: a proposed memory is stored and durable but invisible, and cannot influence any later session until you confirm it. That is enforced in the code rather than requested of the agent, so it holds whether or not the agent cooperates.') . '</dd>';
+  $output .= '<dt>' . t('Reviewing them') . '</dt>';
+  $output .= '<dd>' . t('Memories are listed at <em>/pm/memories</em>. Reviewing does not interrupt anything: proposals queue up and you confirm or discard them whenever you like.') . '</dd>';
+  $output .= '<dt>' . t('How a memory comes back') . '</dt>';
+  $output .= '<dd>' . t('An assistant can search memories by keyword, receives the relevant ones when it loads a project, and sees the decisions attached to a task when it reads that task — which is the one that matters, because it is the only path that does not depend on somebody remembering to look.') . '</dd>';
+  $output .= '<dt>' . t('Removing one') . '</dt>';
+  $output .= '<dd>' . t('Nothing an agent can call deletes a memory. The forget tool archives it, and archiving needs its own permission, so it is a deliberate escalation rather than something a contributing agent already has.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Memory module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

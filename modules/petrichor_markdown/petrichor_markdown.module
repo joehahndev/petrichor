@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor Markdown module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_markdown_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_markdown') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Markdown module provides a Markdown text format backed by league/commonmark. Petrichor uses it for project briefs, task descriptions, wiki pages, worklog comments and memories, so the same text reads correctly whether a person typed it into a form or an AI assistant sent it over the API.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Safety') . '</dt>';
+  $output .= '<dd>' . t('Raw HTML in the input is escaped rather than rendered, and unsafe links are stripped. That matters more than usual here: some of this text was written by a machine acting on content it read somewhere else, and a format that executed what it was given would carry that straight through.') . '</dd>';
+  $output .= '<dt>' . t('Using it elsewhere') . '</dt>';
+  $output .= '<dd>' . t('It is an ordinary text format, so you can enable it for any field on your site at <em>/admin/config/content/formats</em>.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Markdown module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

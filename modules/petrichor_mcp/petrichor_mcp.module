@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Help for the Petrichor MCP module.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_mcp_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_mcp') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor MCP module serves a Model Context Protocol endpoint at <em>/mcp</em>, so an AI assistant can read and update your work directly instead of going through an API maintained separately from the application. Every tool it exposes calls the same service the user interface calls, so the two cannot drift apart.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Connecting an assistant') . '</dt>';
+  $output .= '<dd>' . t('Create one user per agent rather than a shared account, so you can tell them apart in the worklog and revoke one without touching the others. Give it a role holding <em>Access Petrichor MCP</em>, then point an MCP client at <em>/mcp</em>. Install the Key authentication module for per-agent API keys; basic authentication and session cookies also work.') . '</dd>';
+  $output .= '<dt>' . t('Deciding what an agent may do') . '</dt>';
+  $output .= '<dd>' . t('Entity access applies on top of endpoint access, so a role with <em>Access Petrichor MCP</em> and <em>View Petrichor content</em> is genuinely read-only. That is the right shape for anything running unattended. Never give an agent role <em>Delete Petrichor content</em> or <em>Administer Petrichor</em>: nothing in the tool surface hard-deletes, and that guarantee depends on the permission being withheld.') . '</dd>';
+  $output .= '<dt>' . t('What gets exposed') . '</dt>';
+  $output .= '<dd>' . t('Each Petrichor module registers its own tools, so the tool list is exactly what you have enabled. With only Petrichor Projects installed, an assistant is offered project and context tools and nothing else — it is never told about a tool that would fail.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor MCP module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}

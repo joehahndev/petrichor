@@ -7,3 +7,4 @@ dependencies:
   - petrichor:petrichor
   - petrichor:petrichor_projects
   - petrichor:petrichor_markdown
+  - drupal:text

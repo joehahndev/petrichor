@@ -1,11 +1,17 @@
 langcode: en
 status: true
+# See comment.type.petrichor_worklog.yml: 'enforced' is what makes this config
+# go away when petrichor_comments is uninstalled. The module list below is the
+# field's own dependencies and does not include us.
 dependencies:
   config:
     - field.storage.petrichor_task.worklog
   module:
     - comment
     - petrichor_tasks
+  enforced:
+    module:
+      - petrichor_comments
 id: petrichor_task.petrichor_task.worklog
 field_name: worklog
 entity_type: petrichor_task

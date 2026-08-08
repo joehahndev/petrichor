@@ -5,3 +5,6 @@ package: 'Petrichor PM'
 core_version_requirement: ^11.1
 dependencies:
   - petrichor:petrichor
+  - drupal:options
+  - drupal:datetime
+  - drupal:text

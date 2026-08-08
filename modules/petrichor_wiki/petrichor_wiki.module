@@ -18,7 +18,30 @@
 declare(strict_types=1);
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\petrichor_wiki\WikiLinkService;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_wiki_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_wiki') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Wiki module provides a markdown knowledge base at <em>/kb</em>: hierarchical pages, wiki-style links, backlinks and full revision history. Pages can be scoped to a project or kept site-wide.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Linking pages') . '</dt>';
+  $output .= '<dd>' . t('Write <em>[[Another page]]</em> in a page body. The link works whether or not that page exists yet: if it does not, it renders differently and clicking it opens the add form with the title already filled in. That is the point of wiki linking — noting what should exist is how it comes to exist.') . '</dd>';
+  $output .= '<dt>' . t('Finding the gaps') . '</dt>';
+  $output .= '<dd>' . t('<em>/kb/wanted</em> lists every page something has linked to but nobody has written, which is a fair reading list for a knowledge base nobody has finished.') . '</dd>';
+  $output .= '<dt>' . t('History') . '</dt>';
+  $output .= '<dd>' . t('Pages are revisioned, so each save records who made it and when, and any earlier version can be viewed or reverted.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Wiki module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}
 
 /**
  * Implements hook_ENTITY_TYPE_insert() for petrichor_wiki_page.
