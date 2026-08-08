@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\petrichor\ConcurrencyGuardTrait;
 use Drupal\petrichor\ProvenanceTrait;
+use Drupal\petrichor_memory\MemoryService;
 
 /**
  * Domain service for tasks — single implementation behind MCP, UI, drush.
@@ -18,10 +19,19 @@ class TaskService {
   use ConcurrencyGuardTrait;
   use ProvenanceTrait;
 
+  /**
+   * Constructs a TaskService.
+   *
+   * $memory is injected with '@?' in services.yml and is NULL when
+   * petrichor_memory is not installed — this module does not depend on it and
+   * must stay installable without it. The NULL check in getTask() is load
+   * bearing; do not promote the argument to '@'.
+   */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected EntityFieldManagerInterface $entityFieldManager,
     protected TimeInterface $time,
+    protected ?MemoryService $memory = NULL,
   ) {}
 
   /**
@@ -89,10 +99,32 @@ class TaskService {
   }
 
   /**
+   * Memory types surfaced on a task read.
+   *
+   * Constraints only. A decision or a preference is something you can violate
+   * without noticing, which is what makes it worth carrying uninvited;
+   * 'learning' and 'reference' are material you go and look up, and putting
+   * them on every task read would be noise charged to every caller.
+   */
+  protected const RELATED_MEMORY_TYPES = ['decision', 'preference'];
+
+  /**
+   * How many related memories ride along. Small on purpose — see getTask().
+   */
+  protected const RELATED_MEMORY_CAP = 3;
+
+  /**
    * One task, plus the fields lists leave out: description, milestone, parent.
    *
    * A task that does not exist and one the caller may not view raise the same
    * error, so an id probe cannot tell them apart.
+   *
+   * When petrichor_memory is installed the response also carries the ids and
+   * titles of active memories matching the task, scoped to its project. This
+   * is the point where retrieval actually pays: get_task is read *before* the
+   * work, so a decision already made lands in front of the caller in time to
+   * change what they do, rather than being available to anyone who thought to
+   * search — which is exactly what nobody does.
    */
   public function getTask(int $id): array {
     $task = $this->storage()->load($id);
@@ -106,6 +138,21 @@ class TaskService {
     }
     if ($task->get('parent')->target_id) {
       $stub['parent_id'] = (int) $task->get('parent')->target_id;
+    }
+    if ($this->memory) {
+      // Titles only, and the key is omitted when nothing matches: this rides
+      // on one of the most-called tools in the suite, and an empty array on
+      // every task read is pure weight.
+      $related = $this->memory->relatedTo(
+        (string) $task->label(),
+        (int) $task->get('project')->target_id,
+        self::RELATED_MEMORY_TYPES,
+        self::RELATED_MEMORY_CAP,
+      );
+      if ($related) {
+        $stub['related_memories'] = $related;
+        $stub['related_memories_note'] = 'Decisions and preferences that mention this task; call recall for the full text before working against one.';
+      }
     }
     return $stub;
   }

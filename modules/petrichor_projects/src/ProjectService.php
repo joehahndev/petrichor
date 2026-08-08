@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\petrichor_projects;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\petrichor\ProvenanceTrait;
 
@@ -18,6 +19,7 @@ class ProjectService {
 
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
+    protected Connection $database,
   ) {}
 
   /**
@@ -29,11 +31,27 @@ class ProjectService {
 
   /**
    * Projects matching the filters, newest-changed first.
+   *
+   * The `query` filter is how a caller gets from a name to an id. Without it
+   * the only route is listing every project and guessing from titles, which
+   * is what an agent opening an unfamiliar repository has to do — and the
+   * whole of project-scoped memory hangs off having the right id.
+   *
+   * Title and client are both matched because a repository folder is as
+   * likely to be named after the client as after the engagement.
    */
   public function listProjects(array $filters = [], int $limit = 100): array {
     $query = $this->storage()->getQuery()->accessCheck(TRUE);
     if (!empty($filters['status'])) {
       $query->condition('status', $filters['status']);
+    }
+    if (!empty($filters['query'])) {
+      // escapeLike, or a caller searching for a literal '%' matches the whole
+      // table and reads the result as "that is every project I have".
+      $like = '%' . $this->database->escapeLike((string) $filters['query']) . '%';
+      $query->condition($query->orConditionGroup()
+        ->condition('label', $like, 'LIKE')
+        ->condition('client', $like, 'LIKE'));
     }
     $offset = $this->offset($filters);
     $total = (int) (clone $query)->count()->execute();

@@ -102,21 +102,165 @@ class MemoryService {
 
   /**
    * Keyword recall: scope matches rank first, then recall/changed recency.
+   *
+   * The one entry point that records a recall. Everything else that reads
+   * memories does so through matchMemories() and leaves the table alone.
    */
   public function recall(string $keywords, ?int $project_id = NULL, int $limit = 10): array {
     if (trim($keywords) === '') {
       throw new \InvalidArgumentException('query is required.');
     }
-    $like = '%' . $this->database->escapeLike($keywords) . '%';
+    // One term, not tokenised: a deliberate query is a phrase the caller
+    // chose, and splitting it would quietly widen what they asked for. Fact
+    // bodies are in scope because somebody asked — see relatedTo() for why
+    // passive surfacing cannot afford them.
+    [$memories, $total] = $this->matchMemories(
+      [$keywords],
+      $project_id,
+      [],
+      $limit,
+      ['label', 'fact', 'tags'],
+      1,
+    );
+
+    $this->touchRecalled(array_map(fn($m) => (int) $m->id(), $memories));
+    $items = array_map(function ($memory) {
+      $stub = $this->stub($memory);
+      $stub['fact'] = $memory->get('fact')->value;
+      return $stub;
+    }, $memories);
+    return $this->listResult($items, $total);
+  }
+
+  /**
+   * Memories worth knowing before touching something — id and title only.
+   *
+   * The read-only sibling of recall(), for passive surfacing on reads the
+   * user never asked to search: same matching, same ranking, no write.
+   *
+   * It must not call touchRecalled(). last_recalled means "somebody went
+   * looking and this answered", and it feeds the recency half of the ranking
+   * above. Bumping it every time any task is read would flatten that signal
+   * with hits nobody asked for and nobody acted on — the same trap as a
+   * derived value written on read, which this suite has now hit three times.
+   *
+   * Bodies are left out deliberately. Three titles cost roughly forty tokens
+   * on a call agents make constantly, and recall() is one hop away when one
+   * of them turns out to matter.
+   *
+   * $keywords here is a title, not a query — the caller passes whatever the
+   * thing is called and gets nothing back rather than an error when that says
+   * too little to search on.
+   *
+   * Two rules keep this honest, both learned by running it against real data
+   * and getting three-quarters of tasks matched to memories about something
+   * else — a field that is usually wrong is worse than no field, because it
+   * teaches the reader to skip it:
+   *
+   * - Titles and tags are searched, fact bodies are not. A body is prose, and
+   *   prose about storage mentions building, modules and data in passing; a
+   *   memory's title is the one place somebody said what it is about.
+   * - A title offering two or more terms must match two of them. One shared
+   *   common word is a coincidence at this corpus size, and the corpus is
+   *   small enough that coincidences outnumber the real hits.
+   *
+   * @return array<int, array{id: int, title: string}>
+   *   Matching memories, most relevant first; empty when nothing matches.
+   */
+  public function relatedTo(string $keywords, ?int $project_id = NULL, array $types = ['decision', 'preference'], int $limit = 3): array {
+    $terms = $this->terms($keywords);
+    if (!$terms) {
+      return [];
+    }
+    [$memories] = $this->matchMemories(
+      $terms,
+      $project_id,
+      $types,
+      $limit,
+      ['label', 'tags'],
+      count($terms) >= 2 ? 2 : 1,
+    );
+    return array_map(fn($m) => ['id' => (int) $m->id(), 'title' => (string) $m->label()], $memories);
+  }
+
+  /**
+   * Words worth searching on, out of a title nobody wrote as a query.
+   *
+   * Matching a whole title as one substring finds nothing: "Comment storage
+   * rewrite" only hits a memory that contains that exact phrase, and titles do
+   * not repeat between a task and the decision about it. So it is split, and
+   * any term matching is a hit — matching more of them ranks higher.
+   *
+   * Short words and a handful of common ones are dropped because they match
+   * everything and rank nothing. The list is deliberately small: this is
+   * substring matching over a few hundred rows, not a search index, and a
+   * longer stopword list would be pretending otherwise.
+   *
+   * @return string[]
+   *   Lowercased terms, deduplicated; empty when the title says too little.
+   */
+  protected function terms(string $text): array {
+    $stopwords = [
+      'about', 'after', 'also', 'been', 'before', 'both', 'each', 'from',
+      'have', 'into', 'just', 'like', 'made', 'make', 'more', 'only', 'onto',
+      'over', 'some', 'such', 'than', 'that', 'then', 'their', 'there', 'this',
+      'used', 'using', 'were', 'what', 'when', 'which', 'while', 'will',
+      'with', 'your',
+    ];
+    $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower(trim($text)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $terms = array_filter($words, fn(string $w) => mb_strlen($w) >= 4 && !in_array($w, $stopwords, TRUE));
+    return array_values(array_unique($terms));
+  }
+
+  /**
+   * Active memories matching any term, ranked and sliced. Reads only.
+   *
+   * Ranking, in order: how many of the terms a memory matches, then scope
+   * (project-scoped above global), then recency. Term count comes first
+   * because with a multi-term title a memory that matches two of them is
+   * about the subject, and one that matches a single common word is not.
+   *
+   * With a project id the result includes globals — a fact that applies
+   * everywhere applies here too. Recency takes the later of last-recalled and
+   * changed, so a memory nobody has recalled yet still has a position.
+   *
+   * @param string[] $terms
+   *   Search terms; any one matching is a hit.
+   * @param int|null $project_id
+   *   Restrict to this project plus globals, or NULL for every scope.
+   * @param string[] $types
+   *   Restrict to these memory types, or empty for all of them.
+   * @param int $limit
+   *   How many to return.
+   * @param string[] $fields
+   *   Which fields to search: any of 'label', 'fact', 'tags'.
+   * @param int $min_terms
+   *   How many distinct terms a memory must match to qualify. Above 1 the
+   *   returned total counts qualifying matches within the first 100 rows the
+   *   query returned, not every row in the table.
+   *
+   * @return array{0: array<int, object>, 1: int}
+   *   The ranked page, and the total number of matches before slicing.
+   */
+  protected function matchMemories(array $terms, ?int $project_id, array $types, int $limit, array $fields, int $min_terms): array {
+    $terms = array_values(array_filter(array_map(trim(...), $terms), fn(string $t) => $t !== ''));
+    if (!$terms) {
+      return [[], 0];
+    }
     $query = $this->storage()->getQuery()->accessCheck(TRUE)
       ->condition('status', 'active');
-    $group = $query->orConditionGroup()
-      ->condition('label', $like, 'LIKE')
-      ->condition('fact', $like, 'LIKE')
-      ->condition('tags', $like, 'LIKE');
+    $group = $query->orConditionGroup();
+    foreach ($terms as $term) {
+      $like = '%' . $this->database->escapeLike($term) . '%';
+      foreach ($fields as $field) {
+        $group->condition($field, $like, 'LIKE');
+      }
+    }
     $query->condition($group);
+    if ($types) {
+      $query->condition('type', $types, 'IN');
+    }
     if ($project_id !== NULL) {
-      // Project-scoped recall includes globals; scope match ranks first below.
       $scope = $query->orConditionGroup()
         ->condition('project', $project_id)
         ->notExists('project');
@@ -126,8 +270,23 @@ class MemoryService {
     $ids = $query->range(0, 100)->execute();
     $memories = array_values($this->storage()->loadMultiple($ids));
 
-    $recalled = $this->lastRecalledMap(array_map(fn($m) => (int) $m->id(), $memories));
-    usort($memories, function ($a, $b) use ($project_id, $recalled) {
+    $matched = [];
+    foreach ($memories as $memory) {
+      $matched[(int) $memory->id()] = $this->termsMatched($memory, $terms, $fields);
+    }
+    if ($min_terms > 1) {
+      $memories = array_values(array_filter(
+        $memories,
+        fn($m) => $matched[(int) $m->id()] >= $min_terms,
+      ));
+      $total = count($memories);
+    }
+    $recalled = $this->lastRecalledMap(array_keys($matched));
+    usort($memories, function ($a, $b) use ($project_id, $recalled, $matched) {
+      $terms_matched = $matched[(int) $b->id()] <=> $matched[(int) $a->id()];
+      if ($terms_matched !== 0) {
+        return $terms_matched;
+      }
       if ($project_id !== NULL) {
         $scope = (int) ((bool) $b->get('project')->target_id) <=> (int) ((bool) $a->get('project')->target_id);
         if ($scope !== 0) {
@@ -138,15 +297,24 @@ class MemoryService {
       $b_recency = max($recalled[(int) $b->id()] ?? 0, (int) $b->get('changed')->value);
       return $b_recency <=> $a_recency;
     });
-    $memories = array_slice($memories, 0, $limit);
+    return [array_slice($memories, 0, $limit), $total];
+  }
 
-    $this->touchRecalled(array_map(fn($m) => (int) $m->id(), $memories));
-    $items = array_map(function ($memory) {
-      $stub = $this->stub($memory);
-      $stub['fact'] = $memory->get('fact')->value;
-      return $stub;
-    }, $memories);
-    return $this->listResult($items, $total);
+  /**
+   * How many of the terms this memory matches, over the given fields.
+   *
+   * Takes the same field list the query used, so the score cannot rank a row
+   * the database matched as matching nothing.
+   */
+  protected function termsMatched($memory, array $terms, array $fields): int {
+    $values = [
+      'label' => (string) $memory->label(),
+      'fact' => (string) $memory->get('fact')->value,
+      'tags' => implode(' ', array_column($memory->get('tags')->getValue(), 'value')),
+    ];
+    $haystack = mb_strtolower(implode(' ', array_intersect_key($values, array_flip($fields))));
+    $hits = array_filter($terms, fn(string $t) => str_contains($haystack, mb_strtolower($t)));
+    return count($hits);
   }
 
   /**

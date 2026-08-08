@@ -22,10 +22,11 @@ class ProjectToolProvider extends McpToolProviderBase {
     return [
       [
         'name' => 'list_projects',
-        'description' => 'List projects (id, title, status, client, author). Optional status filter.',
+        'description' => 'List projects (id, title, status, client, author). Filter by status, or by query to find a project by name or client — use that to resolve a repository or folder name to a project id.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [
+            'query' => ['type' => 'string', 'description' => 'Substring match on title or client'],
             'status' => ['type' => 'string', 'enum' => ['open', 'on_hold', 'closed', 'archived']],
             'offset' => ['type' => 'integer', 'description' => 'Skip this many results (see next_offset)'],
           ],

@@ -169,4 +169,19 @@ class TaskParentTest extends KernelTestBase {
     $this->assertSame('Original title', $this->tasks->getTask($task)['title']);
   }
 
+  /**
+   * Task reads work with petrichor_memory absent, and say nothing about it.
+   *
+   * Off-topic for a parenting test, but this fixture is the one that matters:
+   * it is the only kernel test that builds petrichor_tasks without the memory
+   * module, which is exactly the à-la-carte install the '@?' injection in
+   * petrichor_tasks.services.yml exists to protect. The positive cases live in
+   * TaskMemorySurfacingTest.
+   */
+  public function testRelatedMemoriesAreAbsentWithoutTheMemoryModule(): void {
+    $result = $this->tasks->getTask($this->makeTask('Any task'));
+    $this->assertArrayNotHasKey('related_memories', $result);
+    $this->assertSame('Any task', $result['title']);
+  }
+
 }
