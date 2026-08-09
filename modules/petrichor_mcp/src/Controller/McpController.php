@@ -149,29 +149,59 @@ final class McpController extends ControllerBase {
     $poll_seconds = (int) Settings::get('petrichor_mcp_poll_seconds', self::DEFAULT_POLL_SECONDS);
 
     $response = new StreamedResponse(function () use ($seen, $stream_seconds, $poll_seconds) {
-      // Padding, not a message: some intermediaries — confirmed on Apache's
-      // mod_proxy_fcgi, which this site does not run but a host site might
-      // — hold the response in a fixed-size buffer regardless of how often
-      // flush() is called, and only forward it once that buffer fills or
-      // the response ends. flush() alone measured a 4s delay here; 8 KiB of
-      // padding (comfortably past the common 4-8 KiB buffer sizes this kind
-      // of intermediary tends to use) forces the buffer to fill on the
-      // first write, so the client gets bytes immediately either way.
-      $this->writeSseLine(':' . str_repeat('0', 8192));
-      // A comment line, not a message: some intermediaries hold back the
-      // first byte of a response until enough of it arrives to be worth
-      // sending on. This gives the client something immediately so it knows
-      // the stream is actually open rather than still connecting.
-      $this->writeSseLine(':stream open');
-      $elapsed = 0;
-      while (!connection_aborted() && $elapsed < $stream_seconds) {
-        $current = $this->toolsGeneration->current();
-        if ($current !== $seen) {
-          $seen = $current;
-          $this->writeSseMessage(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed']);
+      // TEMPORARY DIAGNOSTIC: this whole try/catch and the diag() lines
+      // exist only to find out why drupal.org's own CI (Apache, PHP 8.3)
+      // reads back a completely empty body for this stream, with nothing
+      // in Apache's error log — even the very first line written below
+      // never seems to arrive. To be removed once that's understood.
+      $diag = function (string $label) {
+        $this->writeSseLine(sprintf(
+          ':diag %s sapi=%s php=%s ob_level=%d headers_sent=%d time=%s',
+          $label,
+          PHP_SAPI,
+          PHP_VERSION,
+          ob_get_level(),
+          headers_sent() ? 1 : 0,
+          microtime(TRUE)
+        ));
+      };
+      try {
+        $diag('callback-start');
+        // Padding, not a message: some intermediaries — confirmed on
+        // Apache's mod_proxy_fcgi, which this site does not run but a host
+        // site might — hold the response in a fixed-size buffer regardless
+        // of how often flush() is called, and only forward it once that
+        // buffer fills or the response ends. flush() alone measured a 4s
+        // delay here; 8 KiB of padding (comfortably past the common 4-8 KiB
+        // buffer sizes this kind of intermediary tends to use) forces the
+        // buffer to fill on the first write, so the client gets bytes
+        // immediately either way.
+        $this->writeSseLine(':' . str_repeat('0', 8192));
+        $diag('after-padding');
+        // A comment line, not a message: some intermediaries hold back the
+        // first byte of a response until enough of it arrives to be worth
+        // sending on. This gives the client something immediately so it
+        // knows the stream is actually open rather than still connecting.
+        $this->writeSseLine(':stream open');
+        $diag('after-stream-open');
+        $elapsed = 0;
+        $iteration = 0;
+        while (!connection_aborted() && $elapsed < $stream_seconds) {
+          $iteration++;
+          $current = $this->toolsGeneration->current();
+          $diag("poll-$iteration seen=$seen current=$current");
+          if ($current !== $seen) {
+            $seen = $current;
+            $this->writeSseMessage(['jsonrpc' => '2.0', 'method' => 'notifications/tools/list_changed']);
+            $diag("wrote-notification-$iteration");
+          }
+          sleep(max(1, $poll_seconds));
+          $elapsed += max(1, $poll_seconds);
         }
-        sleep(max(1, $poll_seconds));
-        $elapsed += max(1, $poll_seconds);
+        $diag('loop-exited elapsed=' . $elapsed . ' aborted=' . (connection_aborted() ? 1 : 0));
+      }
+      catch (\Throwable $e) {
+        $this->writeSseLine(':diag EXCEPTION ' . get_class($e) . ': ' . $e->getMessage());
       }
     });
     $response->headers->set('Content-Type', 'text/event-stream');
