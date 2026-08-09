@@ -149,6 +149,15 @@ final class McpController extends ControllerBase {
     $poll_seconds = (int) Settings::get('petrichor_mcp_poll_seconds', self::DEFAULT_POLL_SECONDS);
 
     $response = new StreamedResponse(function () use ($seen, $stream_seconds, $poll_seconds) {
+      // Padding, not a message: some intermediaries — confirmed on Apache's
+      // mod_proxy_fcgi, which this site does not run but a host site might
+      // — hold the response in a fixed-size buffer regardless of how often
+      // flush() is called, and only forward it once that buffer fills or
+      // the response ends. flush() alone measured a 4s delay here; 8 KiB of
+      // padding (comfortably past the common 4-8 KiB buffer sizes this kind
+      // of intermediary tends to use) forces the buffer to fill on the
+      // first write, so the client gets bytes immediately either way.
+      $this->writeSseLine(':' . str_repeat('0', 8192));
       // A comment line, not a message: some intermediaries hold back the
       // first byte of a response until enough of it arrives to be worth
       // sending on. This gives the client something immediately so it knows
