@@ -26,6 +26,11 @@ class WikiToolProvider extends McpToolProviderBase {
    * {@inheritdoc}
    */
   public function getDefinitions(): array {
+    $tags = [
+      'type' => 'array',
+      'items' => ['type' => 'string'],
+      'description' => 'Shared across wiki pages, tasks and memories — reuse an existing name rather than a near-duplicate.',
+    ];
     return [
       [
         'name' => 'search_wiki',
@@ -51,7 +56,7 @@ class WikiToolProvider extends McpToolProviderBase {
       ],
       [
         'name' => 'list_wiki_tree',
-        'description' => 'The KB page hierarchy, nested. Use this to see what exists before searching for something that may not be there. Pass max_depth to get the shape cheaply, page_id to expand only the branch around one page, project_id to scope to a project.',
+        'description' => 'Nested KB page hierarchy. Use before searching, to see what exists rather than guess it may not. max_depth limits depth; page_id expands one branch; project_id scopes to a project.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [
@@ -88,6 +93,7 @@ class WikiToolProvider extends McpToolProviderBase {
             'body' => ['type' => 'string', 'description' => 'Markdown'],
             'parent_id' => ['type' => 'integer'],
             'project_id' => ['type' => 'integer'],
+            'tags' => $tags,
           ],
         ],
       ],
@@ -107,6 +113,7 @@ class WikiToolProvider extends McpToolProviderBase {
               'description' => 'Rejected if it would put the page under its own descendant',
             ],
             'revision_log' => ['type' => 'string', 'description' => 'Why this edit was made; shown in the page history'],
+            'tags' => $tags,
           ],
         ],
       ],

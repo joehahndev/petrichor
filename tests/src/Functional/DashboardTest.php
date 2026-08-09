@@ -169,4 +169,47 @@ class DashboardTest extends BrowserTestBase {
     $this->assertSession()->linkNotExists('Memories');
   }
 
+  /**
+   * With no companion theme installed, there is nothing to nudge toward.
+   *
+   * The default state of every other test in this file, made explicit: none
+   * of them install petrichor_theme, so none of them should ever see this
+   * message either. If one starts failing because the nudge appeared, the
+   * guard broke, not the fixture.
+   *
+   * This is also the only branch of the nudge this suite CAN exercise:
+   * petrichor_theme lives in the site repo, not in the contrib module
+   * package this test runs against — à la carte on purpose, so a bare
+   * `composer require drupal/petrichor` never drags a theme in. The
+   * theme-present branches (the nudge appearing, and disappearing once the
+   * toggle is flipped) are verified live against a site that actually has
+   * the theme installed instead of skipped or faked here.
+   */
+  public function testNoWorkspaceThemeNudgeWithoutTheTheme(): void {
+    $this->drupalLogin($this->drupalCreateUser(['administer petrichor']));
+    $this->drupalGet('/pm');
+
+    $this->assertSession()->pageTextNotContains('workspace theme is installed but not turned on');
+  }
+
+  /**
+   * A user who cannot flip the toggle is not shown a link that would 403.
+   *
+   * Same reasoning as the create-project button on this page: offering an
+   * action to someone who cannot take it is an offer of a permission error.
+   * No theme install needed to make the point — the permission check in
+   * maybeNudgeTowardWorkspaceTheme() runs before the theme check, so a
+   * non-admin is turned away before the theme's presence is even asked
+   * about.
+   */
+  public function testWorkspaceThemeNudgeHiddenFromNonAdmin(): void {
+    $this->drupalLogin($this->drupalCreateUser([
+      'view petrichor content',
+      'manage petrichor content',
+    ]));
+    $this->drupalGet('/pm');
+
+    $this->assertSession()->pageTextNotContains('workspace theme is installed but not turned on');
+  }
+
 }

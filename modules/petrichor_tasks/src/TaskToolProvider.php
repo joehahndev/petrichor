@@ -29,7 +29,11 @@ class TaskToolProvider extends McpToolProviderBase {
       'priority' => ['type' => 'string', 'enum' => ['low', 'medium', 'high', 'urgent']],
       'assignee' => ['type' => 'integer', 'description' => 'User id'],
       'due_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
-      'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
+      'tags' => [
+        'type' => 'array',
+        'items' => ['type' => 'string'],
+        'description' => 'Shared across tasks, memories and wiki pages — reuse an existing name rather than a near-duplicate.',
+      ],
       'milestone_id' => ['type' => 'integer'],
       'parent_id' => ['type' => 'integer', 'description' => 'Set to make this a subtask'],
       'estimate_hours' => ['type' => 'number'],

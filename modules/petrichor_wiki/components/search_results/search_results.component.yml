@@ -1,0 +1,44 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Wiki search results
+status: experimental
+description: 'Ranked search_wiki results with snippets, so relevance can be judged without opening a page — the same reasoning the MCP tool description already gives an agent, given to a human here instead.'
+
+props:
+  type: object
+  required:
+    - results
+    - query
+  properties:
+    query:
+      type: string
+      title: Searched query
+      description: 'Echoed back so the empty-results message can name what was searched for.'
+    results:
+      type: array
+      title: Results
+      description: 'In rank order. This schema is a BC contract from the moment it ships: additive changes only.'
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            title: Page ID
+          title:
+            type: string
+            title: Page title
+          url:
+            type: string
+            title: Destination
+          snippet:
+            type: ['string', 'null']
+            title: Snippet
+            description: 'Plain text around the match. Null when the match was in the title only, or the body is empty.'
+    note:
+      type: ['string', 'null']
+      title: Truncation note
+      description: 'ProvenanceTrait::listResult() note, e.g. "showing 25 of 61 matches".'
+
+slots:
+  footer:
+    title: Footer
+    description: 'A way back to the knowledge base. Collapses to nothing when unfilled.'

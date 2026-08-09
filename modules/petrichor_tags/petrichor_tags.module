@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Attaches a shared tags field to other Petrichor entities.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function petrichor_tags_help(string $route_name, RouteMatchInterface $route_match): ?string {
+  if ($route_name !== 'help.page.petrichor_tags') {
+    return NULL;
+  }
+  $output = '<h2>' . t('About') . '</h2>';
+  $output .= '<p>' . t('The Petrichor Tags module provides one shared "Tags" vocabulary and attaches a tags reference field to whichever of memories, wiki pages and tasks are also enabled — a tag is the same thing wherever it appears, instead of a separate free-text word list per entity.') . '</p>';
+  $output .= '<h2>' . t('Uses') . '</h2>';
+  $output .= '<dl>';
+  $output .= '<dt>' . t('Tagging something') . '</dt>';
+  $output .= '<dd>' . t("Type a tag name on the entity's edit form or in the <code>tags</code> argument of the matching MCP tool (<code>remember</code>, <code>create_task</code>/<code>update_task</code>). An existing tag is reused; a new name creates one.") . '</dd>';
+  $output .= '<dt>' . t('Uninstalling') . '</dt>';
+  $output .= '<dd>' . t('This field is attached, not owned, by memory/wiki/tasks — the same relationship <em>Milestones</em> has to tasks. Uninstall Petrichor Tags and the field goes with it on every entity type it was attached to; the vocabulary and its terms are removed too.') . '</dd>';
+  $output .= '</dl>';
+  $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor Tags module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
+  return $output;
+}
+
+/**
+ * Entity types this module tags, and the form-display weight each gets.
+ *
+ * A weight per type rather than one constant: each entity already has its
+ * own field layout (Memory's fields end around weight 10, Task's around 14),
+ * and tags should land after an entity's own fields wherever that entity
+ * puts them, not at a weight one entity picked for itself.
+ */
+const PETRICHOR_TAGS_TARGET_ENTITY_TYPES = [
+  'petrichor_memory' => 20,
+  'petrichor_wiki_page' => 20,
+  'petrichor_task' => 20,
+];
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Adds a tags reference to memory/wiki/task entities without any of those
+ * modules having to depend on this one — same soft-coupling shape as
+ * petrichor_milestones' 'milestone' field on tasks.
+ */
+function petrichor_tags_entity_base_field_info(EntityTypeInterface $entity_type): array {
+  $fields = [];
+  if (!array_key_exists($entity_type->id(), PETRICHOR_TAGS_TARGET_ENTITY_TYPES)) {
+    return $fields;
+  }
+
+  $fields['tags'] = BaseFieldDefinition::create('entity_reference')
+    ->setLabel(t('Tags'))
+    ->setSetting('target_type', 'taxonomy_term')
+    ->setSetting('handler', 'default:taxonomy_term')
+    ->setSetting('handler_settings', [
+      'target_bundles' => ['petrichor_tags' => 'petrichor_tags'],
+      'sort' => ['field' => '_none'],
+      'auto_create' => TRUE,
+      'auto_create_bundle' => 'petrichor_tags',
+    ])
+    ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
+    ->setDisplayOptions('form', [
+      'type' => 'entity_reference_autocomplete_tags',
+      'weight' => PETRICHOR_TAGS_TARGET_ENTITY_TYPES[$entity_type->id()],
+    ])
+    ->setDisplayConfigurable('form', TRUE)
+    ->setDisplayConfigurable('view', TRUE);
+
+  return $fields;
+}

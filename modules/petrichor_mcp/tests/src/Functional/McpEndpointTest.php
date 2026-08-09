@@ -46,6 +46,15 @@ class McpEndpointTest extends BrowserTestBase {
   protected function setUp(): void {
     parent::setUp();
     $this->url = $this->buildUrl('/mcp');
+    // GET /mcp's default 55s stream would make testStreamSendsListChanged()
+    // one of the slowest tests in the suite for no reason — the loop's
+    // correctness does not depend on how long it runs.
+    $this->writeSettings([
+      'settings' => [
+        'petrichor_mcp_stream_seconds' => (object) ['value' => 4, 'required' => TRUE],
+        'petrichor_mcp_poll_seconds' => (object) ['value' => 1, 'required' => TRUE],
+      ],
+    ]);
   }
 
   /**
@@ -232,6 +241,81 @@ class McpEndpointTest extends BrowserTestBase {
     $this->assertTrue(
       isset($body['error']) || !empty($body['result']['isError']),
       'An unknown tool was not reported as an error.',
+    );
+  }
+
+  /**
+   * Initialize advertises listChanged: TRUE, and stream() is why it can.
+   *
+   * A capability flag with nothing behind it is worse than no flag: a client
+   * would hold a connection open on the strength of it and never be told
+   * anything.
+   */
+  public function testInitializeAdvertisesToolsListChanged(): void {
+    [, $body] = $this->post($this->agent(['access petrichor mcp', 'view petrichor content']), [
+      'jsonrpc' => '2.0',
+      'id' => 1,
+      'method' => 'initialize',
+    ]);
+    $this->assertTrue($body['result']['capabilities']['tools']['listChanged'] ?? NULL);
+  }
+
+  /**
+   * A GET with no MCP permission is refused, same as POST.
+   */
+  public function testStreamRequiresPermission(): void {
+    $response = $this->getHttpClient()->get($this->url, [
+      'http_errors' => FALSE,
+      'auth' => $this->agent(['view petrichor content'])['auth'],
+    ]);
+    $this->assertSame(403, $response->getStatusCode());
+  }
+
+  /**
+   * The stream opens as SSE and pushes list_changed when the tracker moves.
+   *
+   * Timing, not just content: `$open_seconds` pins how long the initial
+   * request takes to return. If a buffering layer between here and the
+   * controller (this test's stack, or nginx's default `fastcgi_buffering`,
+   * on a site where PHP-FPM sits behind it) holds the whole response until
+   * the connection closes, `get()` would not return until close to
+   * DEFAULT_STREAM_SECONDS regardless of what the controller does, and this
+   * assertion catches that even before the content assertions below get a
+   * chance to be individually confusing about why.
+   */
+  public function testStreamSendsListChanged(): void {
+    $agent = $this->agent(['access petrichor mcp', 'view petrichor content']);
+    $tracker = $this->container->get('petrichor_mcp.tools_generation');
+
+    $started = microtime(TRUE);
+    $response = $this->getHttpClient()->get($this->url, $agent + [
+      'http_errors' => FALSE,
+      'stream' => TRUE,
+      'timeout' => 10,
+    ]);
+    $open_seconds = microtime(TRUE) - $started;
+
+    $this->assertSame(200, $response->getStatusCode());
+    $this->assertStringContainsString('text/event-stream', $response->getHeaderLine('Content-Type'));
+    $this->assertLessThan(
+      2,
+      $open_seconds,
+      'GET /mcp took ' . round($open_seconds, 1) . 's to return headers; expected it to return '
+      . 'as soon as the stream opens rather than buffering until close.',
+    );
+
+    $tracker->bump();
+
+    $body = $response->getBody();
+    $buffer = '';
+    while (!$body->eof()) {
+      $buffer .= $body->read(1024);
+    }
+    $this->assertStringContainsString(
+      'notifications/tools/list_changed',
+      $buffer,
+      'Stream closed after ' . round(microtime(TRUE) - $started, 1) . 's with no list_changed notification. '
+      . 'Buffer received: ' . var_export($buffer, TRUE),
     );
   }
 

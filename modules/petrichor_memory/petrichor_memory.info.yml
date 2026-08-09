@@ -8,3 +8,4 @@ dependencies:
   - petrichor:petrichor_projects
   - drupal:options
   - drupal:text
+  - drupal:views

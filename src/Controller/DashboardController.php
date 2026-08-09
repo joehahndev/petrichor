@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Drupal\petrichor\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Petrichor PM dashboard.
@@ -20,17 +22,30 @@ use Drupal\Core\Url;
  * rather than a missing link. So every URL here is decided before rendering
  * and the component only draws what it is handed.
  */
-class DashboardController extends ControllerBase {
+final class DashboardController extends ControllerBase {
 
   /**
    * How many projects the dashboard shows before it points at the full list.
    */
   protected const PROJECT_CAP = 12;
 
+  public function __construct(
+    protected ThemeHandlerInterface $themeHandler,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container): static {
+    return new static($container->get('theme_handler'));
+  }
+
   /**
    * Renders the dashboard.
    */
   public function dashboard(): array {
+    $this->maybeNudgeTowardWorkspaceTheme();
+
     // petrichor_projects is optional like everything else. Without it there is
     // no project to scope anything to, so say that rather than render an empty
     // grid that looks like a site with no data.
@@ -111,6 +126,40 @@ class DashboardController extends ControllerBase {
   }
 
   /**
+   * A one-line nudge toward petrichor_theme, shown until it is turned on.
+   *
+   * Only to someone who could actually act on it — offering this to a user
+   * without `administer petrichor` would be pointing at a page that 403s
+   * them, the same mistake createProjectUrl() avoids for the button on this
+   * same page. Only when the theme is actually installed: modules stay
+   * guests by default (see ARCHITECTURE.md), so a site that never added
+   * petrichor_theme has nothing to be nudged toward.
+   *
+   * A Messenger message rather than something folded into the cached
+   * `dashboard` render array on purpose: the toggle lives in config, and a
+   * cached copy of this page would otherwise keep showing the nudge for as
+   * long as the render cache lives, even after somebody flips the setting.
+   * Messenger sits outside that cache entirely, so there is nothing to
+   * invalidate — the message is simply requested fresh, and dropped, on
+   * every render.
+   */
+  protected function maybeNudgeTowardWorkspaceTheme(): void {
+    if (!$this->currentUser()->hasPermission('administer petrichor')) {
+      return;
+    }
+    if (!$this->themeHandler->themeExists('petrichor_theme')) {
+      return;
+    }
+    if ($this->config('petrichor.settings')->get('use_workspace_theme')) {
+      return;
+    }
+    $this->messenger()->addStatus($this->t(
+      'The Petrichor workspace theme is installed but not turned on. <a href=":url">Enable it</a> for the calm, focused view this suite is built around.',
+      [':url' => Url::fromRoute('petrichor.settings')->toString()],
+    ));
+  }
+
+  /**
    * Open (not done) tasks in one project, respecting access.
    */
   protected function openTaskCount(int $project_id): int {
@@ -160,7 +209,10 @@ class DashboardController extends ControllerBase {
       $links[] = [
         'title' => $this->t('Memories'),
         'description' => $this->t('What assistants have recorded, and anything waiting for your review'),
-        'url' => Url::fromRoute('entity.petrichor_memory.collection')->toString(),
+        // Not the entity's own collection link - Memory has none. This is
+        // the View that replaced it (petrichor_memory_overview), filterable
+        // by status/type/project/tags/author.
+        'url' => Url::fromRoute('view.petrichor_memory_overview.page_1')->toString(),
       ];
     }
     // Strings, not TranslatableMarkup: the component's prop schema says

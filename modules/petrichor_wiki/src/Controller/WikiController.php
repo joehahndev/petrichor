@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 use Drupal\petrichor_wiki\WikiService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * HTTP surface for reading the knowledge base.
@@ -70,6 +71,7 @@ final class WikiController extends ControllerBase {
     $tree = $this->wiki->getTree();
 
     return [
+      'search' => $this->searchForm(''),
       'tree' => [
         '#type' => 'component',
         '#component' => 'petrichor_wiki:wiki_tree',
@@ -136,6 +138,13 @@ final class WikiController extends ControllerBase {
             'author_is_agent' => (bool) ($page['author']['is_agent'] ?? FALSE),
             'changed' => isset($page['changed']) ? (string) $page['changed'] : NULL,
             'changed_label' => $this->when($page['changed'] ?? NULL),
+            // Names, not term entities — the service already resolved them.
+            // A renamed tag on a cached page is a known, accepted gap: this
+            // reads names as plain strings rather than through the field
+            // API's own render path, so a term's own cache tag never
+            // bubbles up here. Worth revisiting if tags are ever renamed
+            // often enough to notice; nothing in this suite renames them yet.
+            'tags' => $page['tags'] ?? [],
           ],
           'breadcrumb' => $this->breadcrumb($page, $id),
           'children' => $this->branch($page['children'] ?? []),
@@ -240,10 +249,85 @@ final class WikiController extends ControllerBase {
   }
 
   /**
+   * Ranked keyword search, the human half of the search_wiki MCP tool.
+   *
+   * A bare `q` query string rather than a Drupal form: the result is a GET
+   * whose only effect is reading, and a plain query string is what makes the
+   * URL shareable and the back button return to a search instead of a blank
+   * box. The route carries `no_cache` for the same reason a search page
+   * always must — the response depends on `q`, which page cache does not
+   * vary on.
+   */
+  public function search(Request $request): array {
+    $query = trim((string) $request->query->get('q', ''));
+
+    if ($query === '') {
+      // Not an error: `/kb/search` with nothing typed yet is where the form
+      // itself lives, not a failed search. searchWiki() would throw on an
+      // empty keyword, which is the right answer for the MCP tool and the
+      // wrong one for a page a human can simply land on.
+      return [
+        'search' => $this->searchForm(''),
+        'results' => [
+          '#type' => 'component',
+          '#component' => 'petrichor_wiki:search_results',
+          '#props' => ['query' => '', 'results' => []],
+        ],
+      ];
+    }
+
+    $result = $this->wiki->searchWiki($query, NULL, self::LIST_LIMIT);
+    $items = array_map(fn(array $item): array => [
+      'id' => (int) $item['id'],
+      'title' => (string) $item['title'],
+      'url' => Url::fromRoute('entity.petrichor_wiki_page.canonical', ['petrichor_wiki_page' => $item['id']])->toString(),
+      'snippet' => isset($item['snippet']) ? (string) $item['snippet'] : NULL,
+    ], $this->rows($result));
+
+    return [
+      'search' => $this->searchForm($query),
+      'results' => [
+        '#type' => 'component',
+        '#component' => 'petrichor_wiki:search_results',
+        '#props' => [
+          'query' => $query,
+          'results' => $items,
+          'note' => $this->note($result, count($items)),
+        ],
+        '#slots' => [
+          'footer' => [
+            '#type' => 'link',
+            '#title' => $this->t('Back to the knowledge base'),
+            '#url' => Url::fromRoute('entity.petrichor_wiki_page.collection'),
+          ],
+        ],
+      ],
+    ];
+  }
+
+  /**
    * Title callback for the backlinks page.
    */
   public function backlinksTitle(EntityInterface $petrichor_wiki_page): string {
     return (string) $this->t('What links to @title', ['@title' => $petrichor_wiki_page->label()]);
+  }
+
+  /**
+   * The search box, shared by the index and the results page.
+   *
+   * One component, included twice, rather than two markup copies: a
+   * refined search should look like the same box, not a second one that
+   * happens to match.
+   */
+  protected function searchForm(string $query): array {
+    return [
+      '#type' => 'component',
+      '#component' => 'petrichor_wiki:search_form',
+      '#props' => [
+        'action' => Url::fromRoute('entity.petrichor_wiki_page.search')->toString(),
+        'query' => $query !== '' ? $query : NULL,
+      ],
+    ];
   }
 
   /**

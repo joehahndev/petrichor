@@ -20,3 +20,18 @@ petrichor_mcp.endpoint:
   options:
     no_cache: TRUE
     _auth: ['key_auth', 'basic_auth', 'cookie']
+
+# A separate route rather than adding GET to petrichor_mcp.endpoint: the two
+# have nothing in common but the path. This one opens an SSE stream and never
+# reads a body, so the CSRF requirement above (which exists because the POST
+# route writes) does not apply here.
+petrichor_mcp.stream:
+  path: '/mcp'
+  defaults:
+    _controller: 'Drupal\petrichor_mcp\Controller\McpController::stream'
+  methods: [GET]
+  requirements:
+    _permission: 'access petrichor mcp'
+  options:
+    no_cache: TRUE
+    _auth: ['key_auth', 'basic_auth', 'cookie']

@@ -1,4 +1,7 @@
 services:
+  petrichor_mcp.tools_generation:
+    class: Drupal\petrichor_mcp\ToolsGenerationTracker
+    arguments: ['@keyvalue']
   petrichor_mcp.tool_registry:
     class: Drupal\petrichor_mcp\McpToolRegistry
     arguments: [!tagged_iterator petrichor_mcp.tool_provider]

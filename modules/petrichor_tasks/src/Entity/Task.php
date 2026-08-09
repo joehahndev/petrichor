@@ -137,13 +137,12 @@ class Task extends PetrichorEntityBase {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['tags'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Tags'))
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
-      ->setSetting('max_length', 64)
-      ->setDisplayOptions('form', ['type' => 'string_textfield', 'weight' => 14])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
+    /*
+     * No native 'tags' field: petrichor_tags attaches one via
+     * hook_entity_base_field_info() when it is enabled — the same
+     * soft-coupling this module already receives 'milestone' through, from
+     * petrichor_milestones.
+     */
 
     // Blocked is orthogonal to progress, not a point on it: a task can be
     // in progress AND waiting on someone else. A sixth column would force a

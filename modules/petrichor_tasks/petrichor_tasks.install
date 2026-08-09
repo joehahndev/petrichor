@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Petrichor Tasks.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Removes the native 'tags' field so petrichor_tags can take it over.
+ *
+ * Must run — and be run, via updatedb — before petrichor_tags is ever
+ * enabled. Enabling a module auto-installs any base field it defines onto
+ * every existing entity type as an unconditional first step of
+ * ModuleInstaller::install(), before that module's own hook_install() gets
+ * a chance to run. Finding a field named 'tags' already installed here (the
+ * old string one), that auto-step overwrites the "last installed"
+ * bookkeeping to the new type without touching the actual table — one
+ * already exists under that name — leaving petrichor_tags_install() looking
+ * at bookkeeping that already claims to be migrated, and a table that never
+ * actually changed underneath it. Removing the old field first, in its own
+ * update hook, leaves nothing for that auto-step to collide with by the
+ * time petrichor_tags is installed.
+ *
+ * The old values are stashed in the keyvalue store, not migrated to terms
+ * directly — this hook runs before petrichor_tags (and its vocabulary, and
+ * its resolver service) exists at all. petrichor_tags_install() finishes
+ * the job once it does.
+ *
+ * Keyed by the entity type id ('petrichor_task'), not the module name
+ * ('petrichor_tasks') — the two are not spelled the same, and
+ * petrichor_tags_install() reads this store by entity type id.
+ */
+function petrichor_tasks_update_11001(): string {
+  $manager = \Drupal::entityDefinitionUpdateManager();
+  $old_definition = $manager->getFieldStorageDefinition('tags', 'petrichor_task');
+  if (!$old_definition || $old_definition->getType() !== 'string') {
+    return 'No native tags field on petrichor_task; nothing to remove.';
+  }
+
+  $rows = \Drupal::database()->select('petrichor_task__tags', 't')
+    ->fields('t', ['entity_id', 'tags_value'])
+    ->execute()
+    ->fetchAll();
+  $names_by_entity = [];
+  foreach ($rows as $row) {
+    $names_by_entity[(int) $row->entity_id][] = $row->tags_value;
+  }
+
+  \Drupal::keyValue('petrichor_tags_migration')->set('petrichor_task', $names_by_entity);
+  $manager->uninstallFieldStorageDefinition($old_definition);
+
+  return sprintf(
+    'Removed the native tags field from %d tasks; petrichor_tags will finish migrating them once installed.',
+    count($names_by_entity)
+  );
+}

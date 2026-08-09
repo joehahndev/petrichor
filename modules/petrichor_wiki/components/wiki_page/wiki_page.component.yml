@@ -32,6 +32,12 @@ props:
           type: ['string', 'null']
           title: Last changed, readable
           description: 'Formatted server-side in the reader''s timezone, which is why any page rendering this carries the `timezone` cache context.'
+        tags:
+          type: array
+          title: Tags
+          description: 'Shared across the whole suite, not local to this page — the same name on a task or a memory means the same thing. Empty when the page has none, or when petrichor_tags is not installed.'
+          items:
+            type: string
     breadcrumb:
       type: array
       title: Breadcrumb

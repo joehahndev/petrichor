@@ -37,7 +37,7 @@ class TimesheetToolProvider extends McpToolProviderBase {
       ],
       [
         'name' => 'list_timesheets',
-        'description' => 'List time entries. Filters: task_id, project_id, since/until (YYYY-MM-DD). listed_hours sums only the returned rows — page with offset before reporting a period total.',
+        'description' => 'List time entries. Filters: task_id, project_id, since/until (YYYY-MM-DD). total_hours sums the whole filtered set regardless of paging — use it for period totals. listed_hours sums only the rows on this page.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [

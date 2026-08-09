@@ -50,7 +50,13 @@ use Drupal\petrichor\Entity\PetrichorEntityBase;
     'add-form' => '/pm/memory/add',
     'edit-form' => '/pm/memory/{petrichor_memory}/edit',
     'delete-form' => '/pm/memory/{petrichor_memory}/delete',
-    'collection' => '/pm/memories',
+    // No 'collection' link template: /pm/memories is a View
+    // (petrichor_memory_overview), not the bare generic list builder —
+    // filterable by status/type/project/tags/author, per the decision that
+    // querying memories by whatever metadata is useful should not require
+    // an agent to hand-code a new filter. DefaultHtmlRouteProvider only
+    // generates a collection route when this link template is present, so
+    // omitting it is what leaves /pm/memories free for the View to claim.
   ],
   admin_permission: 'administer petrichor',
   base_table: 'petrichor_memory',
@@ -98,14 +104,11 @@ class Memory extends PetrichorEntityBase {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['tags'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Tags'))
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
-      ->setSetting('max_length', 64)
-      ->setDisplayOptions('form', ['type' => 'string_textfield', 'weight' => 8])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-
+    // No native 'tags' field: petrichor_tags attaches one via
+    // hook_entity_base_field_info() when it is enabled, the same
+    // soft-coupling petrichor_milestones already uses for the 'milestone'
+    // field on tasks. Uninstall petrichor_tags and the field — and its
+    // data — goes with it.
     $fields['status'] = BaseFieldDefinition::create('list_string')
       ->setLabel(t('Status'))
       ->setRequired(TRUE)

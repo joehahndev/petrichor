@@ -37,9 +37,11 @@ class MemoryRetrievalTest extends KernelTestBase {
     'text',
     'options',
     'datetime',
+    'taxonomy',
     'petrichor',
     'petrichor_projects',
     'petrichor_memory',
+    'petrichor_tags',
   ];
 
   /**
@@ -55,10 +57,11 @@ class MemoryRetrievalTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
     $this->installEntitySchema('user');
+    $this->installEntitySchema('taxonomy_term');
     $this->installEntitySchema('petrichor_project');
     $this->installEntitySchema('petrichor_memory');
     $this->installSchema('petrichor_memory', ['petrichor_memory_recall']);
-    $this->installConfig(['system', 'filter', 'petrichor']);
+    $this->installConfig(['system', 'filter', 'petrichor', 'petrichor_tags']);
     $this->createUser([], 'uid1-superuser');
     $this->setUpCurrentUser([], ['view petrichor content', 'manage petrichor content']);
     $this->memory = $this->container->get('petrichor_memory.service');

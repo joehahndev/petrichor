@@ -32,9 +32,11 @@ class TaskQueryTest extends KernelTestBase {
     'text',
     'options',
     'datetime',
+    'taxonomy',
     'petrichor',
     'petrichor_projects',
     'petrichor_tasks',
+    'petrichor_tags',
   ];
 
   /**
@@ -57,9 +59,10 @@ class TaskQueryTest extends KernelTestBase {
   protected function setUp(): void {
     parent::setUp();
     $this->installEntitySchema('user');
+    $this->installEntitySchema('taxonomy_term');
     $this->installEntitySchema('petrichor_project');
     $this->installEntitySchema('petrichor_task');
-    $this->installConfig(['system', 'filter']);
+    $this->installConfig(['system', 'filter', 'petrichor_tags']);
 
     $this->createUser([], 'uid1-superuser');
     $this->setUpCurrentUser([], ['view petrichor content', 'manage petrichor content']);

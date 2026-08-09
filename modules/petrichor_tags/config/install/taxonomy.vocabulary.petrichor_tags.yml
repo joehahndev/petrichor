@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - petrichor_tags
+name: Tags
+vid: petrichor_tags
+description: 'Shared across memories, wiki pages, and tasks — one tag means the same thing everywhere it appears.'
+weight: 0
+new_revision: false

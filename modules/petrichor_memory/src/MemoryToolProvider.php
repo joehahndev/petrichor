@@ -32,7 +32,11 @@ class MemoryToolProvider extends McpToolProviderBase {
             'fact' => ['type' => 'string', 'description' => 'The fact, markdown'],
             'type' => $type,
             'project_id' => ['type' => 'integer'],
-            'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
+            'tags' => [
+              'type' => 'array',
+              'items' => ['type' => 'string'],
+              'description' => 'Shared across memories, tasks and wiki pages — reuse an existing name rather than a near-duplicate.',
+            ],
             'requested' => [
               'type' => 'boolean',
               'description' => 'Set only when the user actually asked you to remember this. Sites configured to record on demand reject anything else.',
@@ -72,7 +76,7 @@ class MemoryToolProvider extends McpToolProviderBase {
       ],
       [
         'name' => 'list_memories',
-        'description' => 'List memories. Filters: project_id, type, status (active|archived, default active). Set include_global with a project_id to also return globals, which apply everywhere.',
+        'description' => 'List memories. Filters: project_id, type, status (active|archived, default active). include_global + project_id also returns globals.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [

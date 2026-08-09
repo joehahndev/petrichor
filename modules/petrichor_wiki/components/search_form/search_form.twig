@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * A search box, and nothing else.
+ *
+ * GET, not a Drupal FormBase: this reads nothing that needs CSRF protection,
+ * and a plain form means the query lives in the URL — shareable, and the
+ * back button returns to a search rather than a blank box.
+ */
+#}
+<form {{ attributes.addClass('petrichor-search-form') }} action="{{ action }}" method="get" role="search">
+  <label class="visually-hidden" for="petrichor-search-form__q">{{ 'Search the knowledge base'|t }}</label>
+  <input
+    class="petrichor-search-form__input"
+    type="search"
+    name="q"
+    id="petrichor-search-form__q"
+    value="{{ query|default('') }}"
+    placeholder="{{ 'Search the knowledge base…'|t }}"
+    autocomplete="off">
+  <button class="petrichor-search-form__submit" type="submit">{{ 'Search'|t }}</button>
+</form>

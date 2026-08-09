@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Petrichor Tags.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_install().
+ *
+ * Finishes migrating tag data that petrichor_memory/petrichor_tasks's own
+ * update hooks (petrichor_memory_update_11004, petrichor_tasks_update_11001)
+ * already pulled off their native string 'tags' field and stashed in the
+ * keyvalue store. This module does not do that removal itself: by the time
+ * this hook runs, ModuleInstaller::install() has already auto-installed
+ * this module's own entity_reference 'tags' field onto every entity type
+ * that defines it in code (see PETRICHOR_TAGS_TARGET_ENTITY_TYPES in the
+ * .module file) as an unconditional step that runs before hook_install() —
+ * if a same-named field with data were still installed at that moment, that
+ * auto-step would silently overwrite the "already installed" bookkeeping
+ * without touching the real table, and this migration would never notice.
+ * Removing the old field earlier, in its own update hook, means there is
+ * nothing left for that auto-step to collide with here.
+ *
+ * A fresh install of memory/tasks alongside this module never touches this
+ * path at all — the keyvalue store is empty, because there was never an old
+ * field to remove in the first place.
+ */
+function petrichor_tags_install(): void {
+  $store = \Drupal::keyValue('petrichor_tags_migration');
+  foreach (['petrichor_memory', 'petrichor_task'] as $entity_type_id) {
+    $names_by_entity = $store->get($entity_type_id);
+    if (!$names_by_entity) {
+      continue;
+    }
+    _petrichor_tags_populate_migrated_data($entity_type_id, $names_by_entity);
+    $store->delete($entity_type_id);
+  }
+}
+
+/**
+ * Resolves stashed tag strings to terms and writes them onto their entities.
+ *
+ * Through the entity API, not raw inserts — the entity API is what gets
+ * cache tag invalidation right without restating it here, and neither
+ * entity type is revisionable, so a plain save() is the whole story.
+ *
+ * @param string $entity_type_id
+ *   The entity type the tags belong to.
+ * @param array $names_by_entity
+ *   Tag name lists keyed by entity id, as stashed by the update hook that
+ *   removed the old field.
+ */
+function _petrichor_tags_populate_migrated_data(string $entity_type_id, array $names_by_entity): void {
+  $resolver = \Drupal::service('petrichor_tags.resolver');
+  $term_ids_by_entity = [];
+  foreach ($names_by_entity as $entity_id => $names) {
+    $term_ids_by_entity[(int) $entity_id] = $resolver->resolveNames($names);
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+  foreach ($storage->loadMultiple(array_keys($term_ids_by_entity)) as $entity) {
+    if ($entity->hasField('tags')) {
+      $entity->set('tags', $term_ids_by_entity[(int) $entity->id()]);
+      $entity->save();
+    }
+  }
+}

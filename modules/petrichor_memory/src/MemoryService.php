@@ -10,6 +10,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\petrichor\ProvenanceTrait;
+use Drupal\petrichor_tags\TagResolver;
 
 /**
  * Domain service for agent memory.
@@ -18,12 +19,20 @@ class MemoryService {
 
   use ProvenanceTrait;
 
+  /**
+   * Constructs a MemoryService.
+   *
+   * $tags is injected with '@?' in services.yml and NULL when
+   * petrichor_tags is not installed — this module does not depend on it and
+   * must stay installable without it; the 'tags' field is simply absent.
+   */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected Connection $database,
     protected AccountProxyInterface $currentUser,
     protected TimeInterface $time,
     protected ConfigFactoryInterface $configFactory,
+    protected ?TagResolver $tags = NULL,
   ) {}
 
   /**
@@ -56,9 +65,15 @@ class MemoryService {
       'fact' => ['value' => $values['fact'], 'format' => 'markdown'],
       'project' => $values['project_id'] ?? NULL,
       'type' => $values['type'] ?? 'learning',
-      'tags' => $values['tags'] ?? [],
       'status' => $policy === 'ask' ? 'proposed' : 'active',
     ]);
+    // Not in the create() array above: 'tags' is an entity_reference field
+    // that only exists when petrichor_tags is enabled, and resolving names
+    // to term ids needs a service call Entity::create() can't make on its
+    // own — same reasoning as TaskService::createTask()'s milestone/tags.
+    if (!empty($values['tags']) && $this->tags && $memory->hasField('tags')) {
+      $memory->set('tags', $this->tags->resolveNames((array) $values['tags']));
+    }
     if (!$memory->access('create')) {
       throw new \InvalidArgumentException('Not allowed to create memories.');
     }
@@ -253,6 +268,21 @@ class MemoryService {
     foreach ($terms as $term) {
       $like = '%' . $this->database->escapeLike($term) . '%';
       foreach ($fields as $field) {
+        // 'tags' is a reference field, not text on this table — 'LIKE'
+        // against a target_id column would compare a string pattern to an
+        // integer and never match. Find which terms match this term first;
+        // a memory qualifies by carrying one of those terms' ids. Skipped
+        // entirely (not an always-false condition) when nothing matches or
+        // petrichor_tags is absent, so the OR group degrades to whatever
+        // other fields were asked for instead of a condition on a field
+        // that may not exist.
+        if ($field === 'tags') {
+          $tag_ids = $this->tags?->idsMatching($term) ?? [];
+          if ($tag_ids) {
+            $group->condition('tags', $tag_ids, 'IN');
+          }
+          continue;
+        }
         $group->condition($field, $like, 'LIKE');
       }
     }
@@ -310,7 +340,7 @@ class MemoryService {
     $values = [
       'label' => (string) $memory->label(),
       'fact' => (string) $memory->get('fact')->value,
-      'tags' => implode(' ', array_column($memory->get('tags')->getValue(), 'value')),
+      'tags' => implode(' ', $this->tags?->namesFor($memory) ?? []),
     ];
     $haystack = mb_strtolower(implode(' ', array_intersect_key($values, array_flip($fields))));
     $hits = array_filter($terms, fn(string $t) => str_contains($haystack, mb_strtolower($t)));
@@ -412,7 +442,7 @@ class MemoryService {
     return $this->baseStub($memory) + [
       'type' => $memory->get('type')->value,
       'project_id' => $memory->get('project')->target_id ? (int) $memory->get('project')->target_id : NULL,
-      'tags' => array_column($memory->get('tags')->getValue(), 'value'),
+      'tags' => $this->tags?->namesFor($memory) ?? [],
       'status' => $memory->get('status')->value,
     ];
   }

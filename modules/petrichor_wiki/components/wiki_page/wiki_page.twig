@@ -58,6 +58,14 @@
     <span class="petrichor-wiki-page__actions">{% block page_actions %}{% endblock %}</span>
   </div>
 
+  {% if page.tags|default([]) is not empty %}
+    <ul class="petrichor-wiki-page__tags">
+      {% for tag in page.tags %}
+        <li class="petrichor-wiki-page__tag">{{ tag }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   <div class="petrichor-wiki-page__body">
     {% block body %}{% endblock %}
   </div>

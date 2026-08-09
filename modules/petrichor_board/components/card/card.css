@@ -127,6 +127,15 @@
   text-decoration: underline;
 }
 
+/* Muted and un-bolded so the id reads as a reference, not competing with the
+   title for attention. Inside the title link rather than its own element:
+   the id is how this task gets named out loud ("fix #42"), so it belongs in
+   the one accessible name rather than a second thing to tab to. */
+.petrichor-card__title .petrichor-card__number {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-weight: 400;
+}
+
 .petrichor-card__project {
   margin: var(--petrichor-space-2, 0.5rem) 0 0;
   color: var(--petrichor-text-muted, var(--petrichor-local-muted));

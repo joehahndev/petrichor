@@ -60,6 +60,19 @@ entity.petrichor_wiki_page.wanted:
   requirements:
     _permission: 'view petrichor content'
 
+entity.petrichor_wiki_page.search:
+  path: '/kb/search'
+  defaults:
+    _controller: 'Drupal\petrichor_wiki\Controller\WikiController::search'
+    _title: 'Search'
+  requirements:
+    _permission: 'view petrichor content'
+  options:
+    # A GET whose only effect is reading, and whose result varies per query
+    # string — the page cache would otherwise serve one visitor's search
+    # results to the next visitor who searches something else.
+    no_cache: TRUE
+
 entity.petrichor_wiki_page.backlinks:
   path: '/kb/{petrichor_wiki_page}/backlinks'
   defaults:

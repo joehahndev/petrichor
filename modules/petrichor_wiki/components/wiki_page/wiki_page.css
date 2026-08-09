@@ -109,6 +109,30 @@ a.petrichor-wiki-page__crumb-link:focus-visible {
   font-weight: 500;
 }
 
+/* ---------------------------------------------------------------------------
+   Tags.
+   ---------------------------------------------------------------------------
+   Bordered, not filled — the accent-soft fill above is spent on "agent",
+   which is a fact worth noticing; a tag is a fact worth skimming past most of
+   the time, and a solid chip per tag would out-shout the byline it sits
+   under. */
+.petrichor-wiki-page__tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 var(--petrichor-space-4, 1.5rem);
+  padding: 0;
+  list-style: none;
+  gap: var(--petrichor-space-1, 0.25rem);
+}
+
+.petrichor-wiki-page__tag {
+  padding: 0.0625rem var(--petrichor-space-2, 0.5rem);
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: 999px;
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
 /* Pushed to the end of the line so the byline reads left to right and the
    controls sit where controls sit, at any width. */
 .petrichor-wiki-page__actions {

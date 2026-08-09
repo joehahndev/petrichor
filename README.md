@@ -178,7 +178,11 @@ submodule, so the tool surface is exactly what you turned on.
 
 `petrichor_mcp` deliberately depends on nothing but projects. Each of the other
 modules registers its own tools, so the server exposes exactly what you have
-enabled — an agent is never offered a task tool on a site with no tasks.
+enabled — an agent is never offered a task tool on a site with no tasks. Enable
+or disable a submodule and a connected client's tool list catches up on its
+own within a few seconds, via `notifications/tools/list_changed` on the
+Streamable HTTP stream — no reconnect required, for any client that supports
+it (Claude Code does).
 
 Full docs for the piece people ask about most:
 **[Agent memory](modules/petrichor_memory/README.md)** — what it stores, how it

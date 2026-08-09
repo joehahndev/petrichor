@@ -1,0 +1,18 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Wiki search form
+status: experimental
+description: 'The one box a human has to find pages by content rather than by name or position in the tree. A plain GET form on purpose: search is a read, the URL is shareable and back-button-safe, and neither of those is true of a POST.'
+
+props:
+  type: object
+  required:
+    - action
+  properties:
+    action:
+      type: string
+      title: Submit target
+      description: 'The search results route. Not required to be entity.petrichor_wiki_page.search — the component does not know the route name, only where to send the request.'
+    query:
+      type: ['string', 'null']
+      title: Current query
+      description: 'Pre-fills the box on the results page, so refining a search means editing the existing text rather than retyping it.'

@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\petrichor\ConcurrencyGuardTrait;
 use Drupal\petrichor\ProvenanceTrait;
 use Drupal\petrichor_memory\MemoryService;
+use Drupal\petrichor_tags\TagResolver;
 
 /**
  * Domain service for tasks — single implementation behind MCP, UI, drush.
@@ -23,10 +24,11 @@ class TaskService {
   /**
    * Constructs a TaskService.
    *
-   * $memory is injected with '@?' in services.yml and is NULL when
-   * petrichor_memory is not installed — this module does not depend on it and
-   * must stay installable without it. The NULL check in getTask() is load
-   * bearing; do not promote the argument to '@'.
+   * $memory and $tags are both injected with '@?' in services.yml and NULL
+   * when petrichor_memory/petrichor_tags are not installed — this module
+   * does not depend on either and must stay installable without them. The
+   * NULL checks in getTask() and around every $tags use are load bearing;
+   * do not promote either argument to '@'.
    */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
@@ -34,6 +36,7 @@ class TaskService {
     protected TimeInterface $time,
     protected Connection $database,
     protected ?MemoryService $memory = NULL,
+    protected ?TagResolver $tags = NULL,
   ) {}
 
   /**
@@ -87,10 +90,22 @@ class TaskService {
       // MemoryService::relatedTo(): this is a search somebody asked for, so a
       // hit in a description is a result rather than noise.
       $like = '%' . $this->database->escapeLike((string) $filters['query']) . '%';
-      $query->condition($query->orConditionGroup()
+      $group = $query->orConditionGroup()
         ->condition('label', $like, 'LIKE')
-        ->condition('description', $like, 'LIKE')
-        ->condition('tags', $like, 'LIKE'));
+        ->condition('description', $like, 'LIKE');
+      // Tags is a reference field now, not text on this table — 'LIKE'
+      // against a target_id column would compare a string pattern to an
+      // integer and never match. Resolve which terms match the keyword
+      // first, then ask for tasks carrying any of those term ids.
+      // matching() returns [] rather than every term when petrichor_tags
+      // is absent or nothing matches, so the OR group degrades to exactly
+      // the label/description search above instead of a condition on a
+      // field that may not exist.
+      $matching_tag_ids = $this->tags?->idsMatching((string) $filters['query']) ?? [];
+      if ($matching_tag_ids) {
+        $group->condition('tags', $matching_tag_ids, 'IN');
+      }
+      $query->condition($group);
     }
     if (!empty($filters['assignee'])) {
       $query->condition('assignee', (int) $filters['assignee']);
@@ -176,9 +191,11 @@ class TaskService {
   /**
    * Creates a task. Only title and project_id are required.
    *
-   * The milestone is set after create() rather than with the other values
-   * because petrichor_milestones is optional — the field is simply absent
-   * when it is not installed.
+   * The milestone and tags are both set after create() rather than with the
+   * other values, because petrichor_milestones and petrichor_tags are both
+   * optional — each field is simply absent when its module is not
+   * installed, and tags additionally needs a service call (resolving names
+   * to term ids) that Entity::create() has no way to make.
    */
   public function createTask(array $values): array {
     if (empty($values['title']) || empty($values['project_id'])) {
@@ -194,7 +211,6 @@ class TaskService {
       'priority' => $values['priority'] ?? 'medium',
       'assignee' => $values['assignee'] ?? NULL,
       'due_date' => $values['due_date'] ?? NULL,
-      'tags' => $values['tags'] ?? [],
       'parent' => $values['parent_id'] ?? NULL,
       'estimate_hours' => $values['estimate_hours'] ?? NULL,
       'blocked' => !empty($values['blocked']),
@@ -205,6 +221,13 @@ class TaskService {
     ]);
     if (!empty($values['milestone_id']) && $task->hasField('milestone')) {
       $task->set('milestone', (int) $values['milestone_id']);
+    }
+    // Not in the create() array above: 'tags' isn't a plain string here —
+    // it's an entity_reference field that only exists when petrichor_tags
+    // is enabled, and resolving names to term ids needs a service call
+    // Entity::create() can't make on its own.
+    if (!empty($values['tags']) && $this->tags && $task->hasField('tags')) {
+      $task->set('tags', $this->tags->resolveNames((array) $values['tags']));
     }
     if (!$task->access('create')) {
       throw new \InvalidArgumentException('Not allowed to create tasks.');
@@ -249,7 +272,6 @@ class TaskService {
       'priority' => 'priority',
       'due_date' => 'due_date',
       'assignee' => 'assignee',
-      'tags' => 'tags',
       'parent_id' => 'parent',
       'estimate_hours' => 'estimate_hours',
       'blocked' => 'blocked',
@@ -262,6 +284,15 @@ class TaskService {
     }
     if (array_key_exists('milestone_id', $values) && $task->hasField('milestone')) {
       $task->set('milestone', $values['milestone_id']);
+    }
+    // Off the generic $map above for the same reason createTask() sets it
+    // separately: an entity_reference field needs names resolved to term
+    // ids, not written as-is, and explicit null/[] means "clear the tags"
+    // rather than "leave them" — the same clear-vs-omit distinction every
+    // other field in this partial update honours.
+    if (array_key_exists('tags', $values) && $task->hasField('tags')) {
+      $names = (array) ($values['tags'] ?? []);
+      $task->set('tags', $names ? ($this->tags?->resolveNames($names) ?? []) : []);
     }
     if (array_key_exists('description', $values)) {
       $task->set('description', ['value' => $values['description'], 'format' => 'markdown']);
@@ -481,7 +512,11 @@ class TaskService {
     if ($stub['blocked'] && $task->get('blocked_note')->value) {
       $stub['blocked_note'] = $task->get('blocked_note')->value;
     }
-    $tags = array_column($task->get('tags')->getValue(), 'value');
+    // Names, never term ids: an agent that sent 'bug' should see 'bug' come
+    // back, not a number it would have to look up. $this->tags is NULL when
+    // petrichor_tags is not installed, same as the field itself being
+    // absent — namesFor() only needs hasField() to answer '[]' either way.
+    $tags = $this->tags?->namesFor($task) ?? [];
     if ($tags) {
       $stub['tags'] = $tags;
     }

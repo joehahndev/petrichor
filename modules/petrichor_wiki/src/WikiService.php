@@ -14,6 +14,7 @@ use Drupal\Core\Entity\RevisionLogInterface;
 use Drupal\Core\Entity\Sql\SqlEntityStorageInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\petrichor\ProvenanceTrait;
+use Drupal\petrichor_tags\TagResolver;
 
 /**
  * Domain service for wiki/KB pages.
@@ -116,6 +117,10 @@ class WikiService {
    *   installed — backlink-derived features return empty and say so rather
    *   than re-implementing normalization here, which is exactly the bug class
    *   a second normalizer would create.
+   * @param \Drupal\petrichor_tags\TagResolver|null $tags
+   *   NULL when petrichor_tags is not installed — the 'tags' field is then
+   *   simply absent, same as every other Petrichor entity's optional
+   *   cross-cutting fields.
    */
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
@@ -123,6 +128,7 @@ class WikiService {
     protected TimeInterface $time,
     protected EntityDefinitionUpdateManagerInterface $entityDefinitionUpdateManager,
     protected ?WikiLinkService $linkResolver = NULL,
+    protected ?TagResolver $tags = NULL,
   ) {}
 
   /**
@@ -630,6 +636,13 @@ class WikiService {
       'parent' => $values['parent_id'] ?? NULL,
       'project' => $values['project_id'] ?? NULL,
     ]);
+    // Not in the create() array above: 'tags' is an entity_reference field
+    // that only exists when petrichor_tags is enabled, and resolving names
+    // to term ids needs a service call Entity::create() can't make on its
+    // own — same reasoning as TaskService::createTask()'s milestone/tags.
+    if (!empty($values['tags']) && $this->tags && $page->hasField('tags')) {
+      $page->set('tags', $this->tags->resolveNames((array) $values['tags']));
+    }
     if (!$page->access('create')) {
       throw new \InvalidArgumentException('Not allowed to create wiki pages.');
     }
@@ -651,7 +664,7 @@ class WikiService {
    * @param int $id
    *   The wiki page id.
    * @param array $values
-   *   Keys title, body, append, parent_id, revision_log.
+   *   Keys title, body, append, parent_id, revision_log, tags.
    *
    * @return array
    *   The stub of the saved page.
@@ -695,6 +708,10 @@ class WikiService {
       }
       $page->set('parent', $parent_id);
     }
+    if (array_key_exists('tags', $values) && $page->hasField('tags')) {
+      $names = (array) ($values['tags'] ?? []);
+      $page->set('tags', $names ? ($this->tags?->resolveNames($names) ?? []) : []);
+    }
     $this->stampRevision($page, $values, TRUE);
     $page->save();
     $this->skeletonCache = [];
@@ -712,10 +729,18 @@ class WikiService {
    *   The base stub with parent_id and project_id, NULL when unset.
    */
   protected function stub($page): array {
-    return $this->baseStub($page) + [
+    $stub = $this->baseStub($page) + [
       'parent_id' => $page->get('parent')->target_id ? (int) $page->get('parent')->target_id : NULL,
       'project_id' => $page->get('project')->target_id ? (int) $page->get('project')->target_id : NULL,
     ];
+    // $this->tags is NULL when petrichor_tags is not installed — the field
+    // is then simply absent, same as every other Petrichor entity's
+    // optional cross-cutting fields.
+    $tags = $this->tags?->namesFor($page) ?? [];
+    if ($tags) {
+      $stub['tags'] = $tags;
+    }
+    return $stub;
   }
 
   /**

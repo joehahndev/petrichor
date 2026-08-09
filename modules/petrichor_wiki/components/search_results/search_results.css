@@ -1,0 +1,50 @@
+/**
+ * @file
+ * Search results.
+ *
+ * Same token posture as the rest of the suite — see wiki_tree.css.
+ */
+
+:where(.petrichor-search-results) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+}
+
+.petrichor-search-results__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.petrichor-search-results__item {
+  padding-block: var(--petrichor-space-3, 1rem);
+  border-block-end: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+}
+
+.petrichor-search-results__item:last-child {
+  border-block-end: none;
+}
+
+.petrichor-search-results__title {
+  font-size: var(--petrichor-text-base, 1rem);
+  font-weight: 600;
+}
+
+.petrichor-search-results__snippet {
+  margin: var(--petrichor-space-1, 0.25rem) 0 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  line-height: 1.5;
+}
+
+.petrichor-search-results__empty,
+.petrichor-search-results__note {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}
+
+/* Always rendered, hidden by :empty when unfilled — same trick as
+   wiki_tree.css, so the two components read as one family. */
+.petrichor-search-results__footer:empty {
+  display: none;
+}

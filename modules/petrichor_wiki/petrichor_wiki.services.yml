@@ -33,6 +33,10 @@ services:
       # Without this the backlink and wanted-page methods take their
       # not-installed branch and report empty rather than absent.
       - '@petrichor_wiki.link_service'
+      # '@?' means "NULL if that service is not defined". petrichor_tags is
+      # optional and this module must stay installable without it; the
+      # 'tags' field is simply absent when it is not installed.
+      - '@?petrichor_tags.resolver'
   petrichor_wiki.tool_provider:
     class: Drupal\petrichor_wiki\WikiToolProvider
     arguments: ['@petrichor_wiki.service']

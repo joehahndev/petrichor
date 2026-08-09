@@ -1,0 +1,47 @@
+/**
+ * @file
+ * Wiki search form.
+ *
+ * Same token posture as the rest of the suite: a petrichor_theme token first,
+ * a private `--petrichor-local-*` fallback second, so the box looks
+ * intentional under a host theme and matches the theme's own inputs when it
+ * is active.
+ */
+
+:where(.petrichor-search-form) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-raised: color-mix(in sRGB, currentColor 6%, transparent);
+  --petrichor-local-accent-soft: color-mix(in sRGB, currentColor 8%, transparent);
+}
+
+.petrichor-search-form {
+  display: flex;
+  gap: var(--petrichor-space-2, 0.5rem);
+  margin-block-end: var(--petrichor-space-4, 1.5rem);
+  max-inline-size: 32rem;
+}
+
+.petrichor-search-form__input {
+  flex: 1 1 auto;
+  color: inherit;
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-surface-raised, var(--petrichor-local-raised));
+  font-size: var(--petrichor-text-base, 1rem);
+  min-block-size: 2.75rem;
+  padding-inline: var(--petrichor-space-3, 1rem);
+}
+
+/* Same shape as .petrichor-dashboard__button, on purpose — one button
+   language across the suite rather than a second one invented here. */
+.petrichor-search-form__submit {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+  border-radius: var(--petrichor-radius, 6px);
+  background-color: var(--petrichor-accent-soft, var(--petrichor-local-accent-soft));
+  font-weight: 600;
+  min-block-size: 2.75rem;
+  padding-inline: var(--petrichor-space-4, 1.5rem);
+}

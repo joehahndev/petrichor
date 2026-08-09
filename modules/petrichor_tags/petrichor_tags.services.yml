@@ -1,0 +1,4 @@
+services:
+  petrichor_tags.resolver:
+    class: Drupal\petrichor_tags\TagResolver
+    arguments: ['@entity_type.manager']

@@ -21,7 +21,10 @@ use Drupal\Core\Theme\ThemeNegotiatorInterface;
  * Route matching is by route *name* family, not by request path. Path
  * sniffing would also catch anything a host site happens to hang under /pm,
  * and would miss nothing in return: every workspace route is either one of
- * the three named below or an entity route of a petrichor_* entity type. The
+ * the three named below, an entity route of a petrichor_* entity type, or a
+ * View route whose view id starts with petrichor_ (view.petrichor_*.*) — the
+ * naming convention every Views-based page here follows, e.g. the memory
+ * overview replacing what used to be Memory's entity collection route. The
  * route's declared path is then checked as a second gate purely to exclude
  * our own admin pages — the per-entity settings forms live at
  * /admin/structure/petrichor/* and must stay in the admin theme.
@@ -54,6 +57,15 @@ final class PetrichorNegotiator implements ThemeNegotiatorInterface {
    * Route name prefix shared by every petrichor_* entity route.
    */
   private const ENTITY_ROUTE_PREFIX = 'entity.petrichor_';
+
+  /**
+   * Route name prefix shared by every petrichor_* View page.
+   *
+   * A view's route is always named view.<view_id>.<display_id>; every View
+   * this suite ships gives its view id a petrichor_ prefix so this one
+   * string test is enough, the same shape as the entity prefix above.
+   */
+  private const VIEW_ROUTE_PREFIX = 'view.petrichor_';
 
   /**
    * Path prefixes the workspace occupies.
@@ -113,7 +125,9 @@ final class PetrichorNegotiator implements ThemeNegotiatorInterface {
     if ($name === '') {
       return FALSE;
     }
-    if (!in_array($name, self::ROUTE_NAMES, TRUE) && !str_starts_with($name, self::ENTITY_ROUTE_PREFIX)) {
+    if (!in_array($name, self::ROUTE_NAMES, TRUE)
+      && !str_starts_with($name, self::ENTITY_ROUTE_PREFIX)
+      && !str_starts_with($name, self::VIEW_ROUTE_PREFIX)) {
       return FALSE;
     }
 

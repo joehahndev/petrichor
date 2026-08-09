@@ -11,6 +11,9 @@ services:
       # simply omits related_memories when it is absent. Promoting this to '@'
       # would break the à-la-carte install.
       - '@?petrichor_memory.service'
+      # Same reasoning: petrichor_tags is optional, and the 'tags' field it
+      # attaches is simply absent without it.
+      - '@?petrichor_tags.resolver'
   petrichor_tasks.tool_provider:
     class: Drupal\petrichor_tasks\TaskToolProvider
     arguments: ['@petrichor_tasks.service']

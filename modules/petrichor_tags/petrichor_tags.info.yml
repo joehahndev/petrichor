@@ -1,0 +1,8 @@
+name: 'Petrichor Tags'
+type: module
+description: 'A shared tag vocabulary. Attaches a tags reference field to memories, wiki pages, and tasks when each is enabled, so a tag is one thing across the whole suite rather than a separate word list per entity.'
+package: 'Petrichor PM'
+core_version_requirement: ^11.1
+dependencies:
+  - petrichor:petrichor
+  - drupal:taxonomy

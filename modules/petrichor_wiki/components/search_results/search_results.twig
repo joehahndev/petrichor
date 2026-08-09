@@ -1,0 +1,27 @@
+{#
+/**
+ * @file
+ * Ranked search_wiki results, one snippet each.
+ */
+#}
+<div {{ attributes.addClass('petrichor-search-results') }}>
+  {% if query is not empty %}
+    {% if results is not empty %}
+      <ul class="petrichor-search-results__list">
+        {% for result in results %}
+          <li class="petrichor-search-results__item">
+            <a class="petrichor-search-results__title" href="{{ result.url }}">{{ result.title }}</a>
+            {% if result.snippet %}
+              <p class="petrichor-search-results__snippet">{{ result.snippet }}</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if note|default(null) %}<p class="petrichor-search-results__note">{{ note }}</p>{% endif %}
+    {% else %}
+      <p class="petrichor-search-results__empty">{{ 'Nothing matched "@query".'|t({'@query': query}) }}</p>
+    {% endif %}
+  {% endif %}
+
+  <p class="petrichor-search-results__footer">{% block footer %}{% endblock %}</p>
+</div>

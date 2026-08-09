@@ -19,7 +19,7 @@
   .setAttribute('data-changed', card.changed)
   .setAttribute('tabindex', '0') }}>
 
-  <a class="petrichor-card__title" href="{{ card.url }}">{{ card.title }}</a>
+  <a class="petrichor-card__title" href="{{ card.url }}"><span class="petrichor-card__number">#{{ card.id }}</span> {{ card.title }}</a>
 
   {% if show_project|default(false) and card.project_title %}
     <p class="petrichor-card__project">{{ card.project_title }}</p>

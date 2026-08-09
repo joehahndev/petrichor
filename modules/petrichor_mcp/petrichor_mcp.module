@@ -30,3 +30,37 @@ function petrichor_mcp_help(string $route_name, RouteMatchInterface $route_match
   $output .= '<p>' . t('For more information, see the <a href=":url">online documentation for the Petrichor MCP module</a>.', [':url' => 'https://www.drupal.org/project/petrichor']) . '</p>';
   return $output;
 }
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * A newly-enabled submodule can add tool providers, so a connected client's
+ * cached tool list is stale the moment this runs. See ToolsGenerationTracker.
+ */
+function petrichor_mcp_modules_installed(array $modules): void {
+  \Drupal::service('petrichor_mcp.tools_generation')->bump();
+}
+
+/**
+ * Implements hook_modules_uninstalled().
+ *
+ * Same reasoning as petrichor_mcp_modules_installed(), the other direction.
+ */
+function petrichor_mcp_modules_uninstalled(array $modules): void {
+  \Drupal::service('petrichor_mcp.tools_generation')->bump();
+}
+
+/**
+ * Implements hook_cache_flush().
+ *
+ * A module install/uninstall only actually changes what McpToolRegistry
+ * composes once the container is rebuilt, which happens here. Bumping on
+ * every cache flush is broader than strictly necessary — most flushes are
+ * not tool-surface changes — but a false-positive notification costs a
+ * connected client one tools/list re-fetch; a missed one costs a stale tool
+ * list until the user notices and reconnects by hand. Cheap in the wrong
+ * direction on purpose.
+ */
+function petrichor_mcp_cache_flush(): void {
+  \Drupal::service('petrichor_mcp.tools_generation')->bump();
+}
