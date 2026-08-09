@@ -279,9 +279,18 @@ class McpEndpointTest extends BrowserTestBase {
    * controller (this test's stack, or nginx's default `fastcgi_buffering`,
    * on a site where PHP-FPM sits behind it) holds the whole response until
    * the connection closes, `get()` would not return until close to
-   * DEFAULT_STREAM_SECONDS regardless of what the controller does, and this
-   * assertion catches that even before the content assertions below get a
-   * chance to be individually confusing about why.
+   * DEFAULT_STREAM_SECONDS (55s) regardless of what the controller does, and
+   * this assertion catches that even before the content assertions below get
+   * a chance to be individually confusing about why.
+   *
+   * The threshold is 10s, not something tighter: measured at ~4s on
+   * drupal.org's own DrupalCI runners (Apache, shared Kubernetes executor) —
+   * genuine platform overhead, not a buffering regression, confirmed by
+   * varying architecture (this failed identically whether PHP ran under
+   * mod_php or PHP-FPM behind mod_proxy_fcgi) without varying the delay.
+   * 10s stays 5x below the 55s a real "buffered until close" bug produces,
+   * so it still catches that failure mode while giving noisy shared CI
+   * infrastructure real headroom.
    */
   public function testStreamSendsListChanged(): void {
     $agent = $this->agent(['access petrichor mcp', 'view petrichor content']);
@@ -298,7 +307,7 @@ class McpEndpointTest extends BrowserTestBase {
     $this->assertSame(200, $response->getStatusCode());
     $this->assertStringContainsString('text/event-stream', $response->getHeaderLine('Content-Type'));
     $this->assertLessThan(
-      2,
+      10,
       $open_seconds,
       'GET /mcp took ' . round($open_seconds, 1) . 's to return headers; expected it to return '
       . 'as soon as the stream opens rather than buffering until close.',
