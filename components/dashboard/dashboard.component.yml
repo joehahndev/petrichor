@@ -19,7 +19,7 @@ props:
     links:
       type: array
       title: Workspace links
-      description: 'Today, the knowledge base, memories — whichever of them are installed. Built by the controller, because a link to a route that does not exist is a crash, not a broken link.'
+      description: 'Today, the wiki, memories — whichever of them are installed. Built by the controller, because a link to a route that does not exist is a crash, not a broken link.'
       items:
         type: object
     note:

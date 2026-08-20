@@ -14,7 +14,7 @@ use League\CommonMark\Extension\ExtensionInterface;
  *
  * Resolution is a single pass over the finished document rather than something
  * the renderer does per node: a hub page with forty links would otherwise cost
- * forty queries inside rendering, and rendering is the hot path the KB
+ * forty queries inside rendering, and rendering is the hot path the wiki
  * lives on.
  */
 final class WikiLinkExtension implements ExtensionInterface {

@@ -7,6 +7,7 @@ namespace Drupal\petrichor_memory;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\petrichor\ProvenanceTrait;
@@ -32,6 +33,7 @@ class MemoryService {
     protected AccountProxyInterface $currentUser,
     protected TimeInterface $time,
     protected ConfigFactoryInterface $configFactory,
+    protected EntityFieldManagerInterface $entityFieldManager,
     protected ?TagResolver $tags = NULL,
   ) {}
 
@@ -345,6 +347,79 @@ class MemoryService {
     $haystack = mb_strtolower(implode(' ', array_intersect_key($values, array_flip($fields))));
     $hits = array_filter($terms, fn(string $t) => str_contains($haystack, mb_strtolower($t)));
     return count($hits);
+  }
+
+  /**
+   * Moves a memory to any status — the one-click path behind the UI buttons.
+   *
+   * The general form of confirmMemory() and forget(), which stay exactly as
+   * they are because they are wire shapes agents already call. This exists
+   * because a person reviewing memories does not want three different verbs
+   * for "put this in that state", and because the review loop the default
+   * recording policy depends on is only as good as how fast a human can work
+   * through it.
+   *
+   * Archiving delegates to forget() rather than repeating its permission
+   * check. That check is the enforcement point for the maintainer tier, and a
+   * second copy of it here is a second place for it to drift out of agreement
+   * with the first.
+   *
+   * @param int $id
+   *   The memory to move.
+   * @param string $status
+   *   One of the status field's own allowed values.
+   *
+   * @return array
+   *   The memory's id and its new status.
+   *
+   * @throws \InvalidArgumentException
+   *   For an unknown status, a missing memory, or one this user may not edit.
+   */
+  public function setStatus(int $id, string $status): array {
+    if ($status === 'archived') {
+      return $this->forget($id);
+    }
+
+    $allowed = $this->statusOptions();
+    if (!isset($allowed[$status])) {
+      throw new \InvalidArgumentException(sprintf(
+        'Unknown status: %s. Expected one of: %s.',
+        $status,
+        implode(', ', array_keys($allowed)),
+      ));
+    }
+
+    $memory = $this->storage()->load($id);
+    if (!$memory || !$memory->access('update')) {
+      throw new \InvalidArgumentException('Memory not found or not editable.');
+    }
+
+    // Approving a proposed memory is confirmMemory()'s job, not a status write
+    // that happens to have the same effect today. The two are identical right
+    // now and will not stay that way: the planned memory-tier work promotes a
+    // confirmed memory's trust tier inside confirmMemory(), and a button that
+    // set the status directly would approve the memory while silently skipping
+    // the promotion — surfacing much later as a memory that ranks wrong for no
+    // discoverable reason. Same argument as archiving delegating to forget().
+    if ($status === 'active' && $memory->get('status')->value === 'proposed') {
+      return $this->confirmMemory($id);
+    }
+
+    $memory->set('status', $status);
+    $memory->save();
+    return ['id' => (int) $memory->id(), 'status' => $status];
+  }
+
+  /**
+   * The status field's allowed values, machine name => label.
+   *
+   * Read off the field definition rather than hard-coded, so the buttons and
+   * the edit form can never offer different sets. Same approach
+   * TaskService::statusOptions() takes for the board's columns.
+   */
+  public function statusOptions(): array {
+    $fields = $this->entityFieldManager->getBaseFieldDefinitions('petrichor_memory');
+    return $fields['status']->getSetting('allowed_values') ?? [];
   }
 
   /**

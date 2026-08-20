@@ -7,6 +7,7 @@ services:
       - '@current_user'
       - '@datetime.time'
       - '@config.factory'
+      - '@entity_field.manager'
       # '@?' means "NULL if that service is not defined". petrichor_tags is
       # optional and this module must stay installable without it; the
       # 'tags' field is simply absent when it is not installed.
@@ -16,3 +17,15 @@ services:
     arguments: ['@petrichor_memory.service']
     tags:
       - { name: petrichor_mcp.tool_provider }
+  # Registered explicitly rather than left to core's hook autowiring, because
+  # the memory service's id is not its class name.
+  Drupal\petrichor_memory\Hook\MemoryStatusHooks:
+    class: Drupal\petrichor_memory\Hook\MemoryStatusHooks
+    arguments: ['@petrichor_memory.service', '@current_user', '@csrf_token']
+  petrichor_memory.related_provider:
+    class: Drupal\petrichor_memory\RelatedMemoryProvider
+    arguments: ['@entity_type.manager', '@petrichor_memory.service']
+    tags:
+      # Puts the decisions an agent already sees on get_task in front of the
+      # person reading the same task in a browser.
+      - { name: petrichor.related_provider }

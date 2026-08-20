@@ -20,14 +20,14 @@ class McpPrompts {
     return [
       [
         'name' => 'project_status',
-        'description' => 'Produce a status report for a project and save it to the KB.',
+        'description' => 'Produce a status report for a project and save it to the wiki.',
         'arguments' => [
           ['name' => 'project_id', 'description' => 'The project to report on', 'required' => TRUE],
         ],
       ],
       [
         'name' => 'weekly_review',
-        'description' => 'Summarize the week: time logged, tasks moved, decisions made. Saves to the KB.',
+        'description' => 'Summarize the week: time logged, tasks moved, decisions made. Saves to the wiki.',
         'arguments' => [
           ['name' => 'since', 'description' => 'Start date YYYY-MM-DD (default: 7 days ago)', 'required' => FALSE],
         ],

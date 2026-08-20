@@ -26,13 +26,13 @@ function petrichor_help(string $route_name, RouteMatchInterface $route_match): ?
     return NULL;
   }
   $output = '<h2>' . t('About') . '</h2>';
-  $output .= '<p>' . t('The Petrichor PM module is the base of a suite that gives an AI assistant a workspace it can be trusted with: projects, tasks, a knowledge base and durable agent memory as ordinary Drupal content entities, with a Model Context Protocol server so an assistant reads and updates your work directly.') . '</p>';
+  $output .= '<p>' . t('The Petrichor PM module is the base of a suite that gives an AI assistant a workspace it can be trusted with: projects, tasks, a wiki and durable agent memory as ordinary Drupal content entities, with a Model Context Protocol server so an assistant reads and updates your work directly.') . '</p>';
   $output .= '<p>' . t('The pieces ship together because an assistant needs all of them in the same scope to be useful. What am I working on, what do we already know about it, and what did we decide last time are three halves of one question; split across three tools they become three logins and no shared idea of a project.') . '</p>';
   $output .= '<p>' . t('This module itself provides what the others share: the entity base class, the access handler, the permissions, and the dashboard at <em>/pm</em>. Enable only the submodules you want.') . '</p>';
   $output .= '<h2>' . t('Uses') . '</h2>';
   $output .= '<dl>';
   $output .= '<dt>' . t('Getting started') . '</dt>';
-  $output .= '<dd>' . t('Enable Petrichor Projects and Petrichor Tasks, create a project at <em>/pm/project/add</em>, then add tasks to it. Add Petrichor Board for a kanban board and a Today view, Petrichor Wiki for a knowledge base, and Petrichor MCP to connect an assistant.') . '</dd>';
+  $output .= '<dd>' . t('Enable Petrichor Projects and Petrichor Tasks, create a project at <em>/pm/project/add</em>, then add tasks to it. Add Petrichor Board for a kanban board and a Today view, Petrichor Wiki for a wiki, and Petrichor MCP to connect an assistant.') . '</dd>';
   $output .= '<dt>' . t('Permissions') . '</dt>';
   $output .= '<dd>' . t('Deleting is a separate permission from managing, on purpose. Nothing in the API surface hard-deletes, and that guarantee is enforced here in the access handler rather than in shipped configuration, so it survives however few of these modules you install.') . '</dd>';
   $output .= '<dt>' . t('Appearance') . '</dt>';

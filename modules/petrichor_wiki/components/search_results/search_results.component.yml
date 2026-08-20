@@ -41,4 +41,4 @@ props:
 slots:
   footer:
     title: Footer
-    description: 'A way back to the knowledge base. Collapses to nothing when unfilled.'
+    description: 'A way back to the wiki. Collapses to nothing when unfilled.'

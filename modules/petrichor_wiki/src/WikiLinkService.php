@@ -26,7 +26,7 @@ use Psr\Log\LoggerInterface;
  * BacklinkStorage holds the two side tables. The service is also the
  * petrichor_markdown extension provider, so the syntax works in any body using
  * the shared Markdown format — task descriptions and worklog comments as much
- * as KB pages — and disappears cleanly, rendering as literal text, if
+ * as wiki pages — and disappears cleanly, rendering as literal text, if
  * petrichor_wiki is uninstalled.
  */
 final class WikiLinkService implements MarkdownExtensionProviderInterface {
@@ -39,8 +39,8 @@ final class WikiLinkService implements MarkdownExtensionProviderInterface {
    * rendered body that carries a wanted link to that title re-renders with a
    * real link. Deliberately NOT petrichor_wiki_page:<id>, because nothing about
    * the target is displayed (the anchor text is what the author typed), and not
-   * petrichor_wiki_page_list, which fires on every save and would make the KB's
-   * render cache useless exactly as the KB starts being used.
+   * petrichor_wiki_page_list, which fires on every save and would make the
+   * render cache useless exactly as the wiki starts being used.
    */
   public const TITLE_TAG_PREFIX = 'petrichor_wiki_title:';
 
@@ -141,7 +141,7 @@ final class WikiLinkService implements MarkdownExtensionProviderInterface {
     $metadata = new BubbleableMetadata();
     if ($this->tags !== []) {
       $metadata->addCacheTags(array_keys($this->tags));
-      // Attached from the filter result rather than from a /kb route: the
+      // Attached from the filter result rather than from a /wiki route: the
       // Markdown format is shared, so a task description or a worklog comment
       // can render a wiki link too, and those pages never load wiki CSS.
       $metadata->addAttachments(['library' => ['petrichor_wiki/wikilink']]);

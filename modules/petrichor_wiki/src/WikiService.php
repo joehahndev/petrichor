@@ -17,13 +17,13 @@ use Drupal\petrichor\ProvenanceTrait;
 use Drupal\petrichor_tags\TagResolver;
 
 /**
- * Domain service for wiki/KB pages.
+ * Domain service for wiki pages.
  *
  * Everything that reads or writes a page goes through here: controllers and
  * MCP tools hold no entity queries. Navigation and search are deliberately
  * built on one memoized skeleton plus PHP array work rather than per-node
  * queries — a sidebar at depth five must cost the same two queries as a flat
- * list, or the KB stops being usable at the size where a KB starts to matter.
+ * list, or the wiki stops being usable at the size where it starts to matter.
  */
 class WikiService {
 
@@ -56,11 +56,24 @@ class WikiService {
   /**
    * Pages loaded into the navigation skeleton.
    *
-   * Also bounds the `IN` list of the raw select behind it: SQLite has
-   * historically compiled with a 999 bound-parameter limit, and a tree that
-   * silently truncates is better than one that fatals.
+   * No longer bounded by the database's bound-parameter limit — the raw
+   * select behind this chunks its `IN` list (see ID_CHUNK), so the cap is
+   * free to be a judgement about how large a tree is worth drawing rather
+   * than about what SQLite will accept. A tree that silently truncates is
+   * still better than one that fatals, so the cap stays and says so.
    */
-  private const TREE_CAP = 500;
+  private const TREE_CAP = 2000;
+
+  /**
+   * Ids per `IN` clause when reading the skeleton.
+   *
+   * SQLite has historically compiled with a 999 bound-parameter limit, and
+   * one parameter is bound per id. Chunking under that is what let TREE_CAP
+   * rise past it: the rows are re-sorted into the entity query's order
+   * afterwards regardless, so splitting the read changes nothing a caller
+   * can observe.
+   */
+  private const ID_CHUNK = 500;
 
   /**
    * Ancestor walk stop.
@@ -84,7 +97,7 @@ class WikiService {
   private array $skeletonCache = [];
 
   /**
-   * Whether the skeleton hit TREE_CAP, per project scope (0 = KB-wide).
+   * Whether the skeleton hit TREE_CAP, per project scope (0 = wiki-wide).
    *
    * Keyed rather than a single bool: the global skeleton overflowing says
    * nothing about whether one project's tree is complete.
@@ -163,7 +176,7 @@ class WikiService {
    * @param string $keywords
    *   Whitespace-separated terms; the whole string also matches as a phrase.
    * @param int|null $project_id
-   *   Restrict to one project's pages, or NULL for the whole knowledge base.
+   *   Restrict to one project's pages, or NULL for the whole wiki.
    * @param int $limit
    *   Hits per page, applied after ranking rather than in the query.
    * @param int $offset
@@ -188,7 +201,7 @@ class WikiService {
       return $this->listResult([], 0, $offset);
     }
 
-    // Recency picks which slice of a very broad match gets ranked. A KB's
+    // Recency picks which slice of a very broad match gets ranked. A wiki's
     // stale corners are exactly the part worth ranking last.
     $ids = array_map(intval(...), array_values(
       $query->sort('changed', 'DESC')->range(0, self::SEARCH_CANDIDATE_CAP)->execute()
@@ -295,7 +308,7 @@ class WikiService {
     }
     if ($this->truncated()) {
       $stub['navigation_note'] = sprintf(
-        'the knowledge base exceeds %d pages, so breadcrumb and children may be incomplete',
+        'the wiki exceeds %d pages, so breadcrumb and children may be incomplete',
         self::TREE_CAP,
       );
     }
@@ -316,7 +329,7 @@ class WikiService {
    * @param int|null $active_id
    *   When given, the tree is pruned to the spine: all roots, plus the
    *   branches on the path to this page, plus its own children. A sidebar
-   *   wants context, not the whole KB expanded.
+   *   wants context, not the whole wiki expanded.
    * @param int|null $root_id
    *   Start from this page's children instead of the roots.
    * @param int|null $max_depth
@@ -348,11 +361,18 @@ class WikiService {
 
     // Pages in a parent cycle are reachable from no root, so the walk above
     // never sees them. Surfacing them as extra roots keeps the guarantee that
-    // every visible page appears in the tree exactly once. Only when nothing
-    // is being pruned, though: under an active page or a depth limit, unseen
-    // nodes are unseen on purpose and promoting them would undo the pruning.
-    $unpruned = $active_id === NULL && $max_depth === NULL && $root_id === NULL;
-    $orphans = $unpruned ? array_values(array_diff(array_keys($skeleton), array_keys($visited))) : [];
+    // every visible page appears in the tree exactly once.
+    //
+    // A depth limit does not disable that, because depth and roots are
+    // different questions: a shallow walk still shows every root, so a
+    // cycle-trapped page still has to be promoted to one or it appears
+    // nowhere at all. An active-page trail or an explicit root_id *is* a
+    // deliberate narrowing of the root set, and there promoting orphans
+    // would undo exactly the pruning the caller asked for.
+    $promote_orphans = $active_id === NULL && $root_id === NULL;
+    $orphans = $promote_orphans
+      ? array_values(array_diff(array_keys($skeleton), $this->reachable($roots, $children_of)))
+      : [];
     if ($orphans) {
       $items = array_merge($items, $this->buildTree($orphans, $children_of, $skeleton, $trail, $active_id, $max_depth, 0, $visited));
     }
@@ -368,9 +388,42 @@ class WikiService {
   }
 
   /**
+   * Every id reachable from the given roots, ignoring any depth limit.
+   *
+   * Orphan promotion needs "is this page reachable at all", which is a
+   * different question from "did the walk draw it". Diffing against what the
+   * depth-limited walk visited answers the second, and on a shallow index
+   * that promotes every pruned grandchild to a root — turning a table of
+   * contents back into the wall it was meant to replace.
+   *
+   * @param int[] $roots
+   *   Ids to start from.
+   * @param array $children_of
+   *   Child ids keyed by parent id, as assembled by getTree().
+   *
+   * @return int[]
+   *   Reachable ids. Cycles terminate: an id already seen is not re-walked.
+   */
+  private function reachable(array $roots, array $children_of): array {
+    $seen = [];
+    $stack = $roots;
+    while ($stack) {
+      $id = array_pop($stack);
+      if (isset($seen[$id])) {
+        continue;
+      }
+      $seen[$id] = TRUE;
+      foreach ($children_of[$id] ?? [] as $child) {
+        $stack[] = $child;
+      }
+    }
+    return array_keys($seen);
+  }
+
+  /**
    * Everything a page controller needs to draw its navigation, in two queries.
    *
-   * The tree here is KB-wide on purpose: it shares the one memoized skeleton
+   * The tree here is wiki-wide on purpose: it shares the one memoized skeleton
    * with the breadcrumb. A project-scoped sidebar calls getTree() directly.
    */
   public function getPageNavigation(int $id): array {
@@ -514,7 +567,7 @@ class WikiService {
    *
    * Falls straight out of the link table: a link row whose target_key has no
    * row in the title index is a wanted page, and the count of distinct
-   * sources ranks them by how badly the KB wants them.
+   * sources ranks them by how badly the wiki wants them.
    */
   public function listWantedPages(?int $project_id = NULL, int $limit = 25, int $offset = 0): array {
     if ($this->linkResolver === NULL) {
@@ -678,7 +731,7 @@ class WikiService {
       $page->set('label', $values['title']);
     }
     // Append avoids resending an entire page to add a line — the running-log
-    // pattern this KB is built for.
+    // pattern this wiki is built for.
     if (!empty($values['append'])) {
       $existing = (string) $page->get('body')->value;
       $page->set('body', [
@@ -870,7 +923,7 @@ class WikiService {
    * check honest on the day per-project membership lands.
    *
    * @param int|null $project_id
-   *   Scope to one project, or NULL for the whole knowledge base. The scope
+   *   Scope to one project, or NULL for the whole wiki. The scope
    *   is part of the query, never a filter over a shared result — see below.
    *
    * @return array
@@ -907,11 +960,14 @@ class WikiService {
       'project_id' => $this->column('project', 'target_id'),
       'weight' => $this->column('weight', 'value'),
     ];
-    $rows = $this->database->select($this->entityType()->getBaseTable(), 'p')
-      ->fields('p', array_values($columns))
-      ->condition('p.' . $columns['id'], $ids, 'IN')
-      ->execute()
-      ->fetchAll();
+    $rows = [];
+    foreach (array_chunk($ids, self::ID_CHUNK) as $chunk) {
+      $rows = array_merge($rows, $this->database->select($this->entityType()->getBaseTable(), 'p')
+        ->fields('p', array_values($columns))
+        ->condition('p.' . $columns['id'], $chunk, 'IN')
+        ->execute()
+        ->fetchAll());
+    }
 
     $by_id = [];
     foreach ($rows as $row) {
@@ -960,7 +1016,7 @@ class WikiService {
       }
       // With an active page the tree is pruned to the spine: only the branch
       // leading to it, and its own children, expand. A sidebar wants context,
-      // not the entire KB unfolded.
+      // not the entire wiki unfolded.
       $expand = $active_id === NULL || $id === $active_id || isset($trail[$id]);
       if ($expand && !empty($children_of[$id])) {
         $children = $this->buildTree($children_of[$id], $children_of, $skeleton, $trail, $active_id, $max_depth, $depth + 1, $visited);
@@ -1041,11 +1097,14 @@ class WikiService {
       'body' => $this->column('body', 'value'),
       'changed' => $this->column('changed', 'value'),
     ];
-    $rows = $this->database->select($this->entityType()->getBaseTable(), 'p')
-      ->fields('p', array_values($columns))
-      ->condition('p.' . $columns['id'], $ids, 'IN')
-      ->execute()
-      ->fetchAll();
+    $rows = [];
+    foreach (array_chunk($ids, self::ID_CHUNK) as $chunk) {
+      $rows = array_merge($rows, $this->database->select($this->entityType()->getBaseTable(), 'p')
+        ->fields('p', array_values($columns))
+        ->condition('p.' . $columns['id'], $chunk, 'IN')
+        ->execute()
+        ->fetchAll());
+    }
     $out = [];
     foreach ($rows as $row) {
       $out[(int) $row->{$columns['id']}] = [
@@ -1227,7 +1286,7 @@ class WikiService {
   /**
    * Flattens markdown to readable prose for an excerpt.
    *
-   * Underscores are deliberately left alone: this KB is full of identifiers
+   * Underscores are deliberately left alone: this wiki is full of identifiers
    * like petrichor_wiki_page, and stripping them as emphasis would corrupt
    * the exact strings a reader is scanning for.
    */

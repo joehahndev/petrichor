@@ -20,7 +20,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  *   writes about this feature will contain a fenced `[[example]]`, and a regex
  *   indexer would record a backlink the page does not display.
  * - testCreatingThePageResolvesWantedLinks() is the cache-tag contract. If it
- *   fails, red links stay red until an unrelated cache clear and the KB looks
+ *   fails, red links stay red until an unrelated cache clear and the wiki looks
  *   broken in the one moment it should feel alive.
  * - testRenameKeepsInboundLinksFindable() is the price of storing titles rather
  *   than ids. The rename is *allowed* to orphan inbound links; it is not
@@ -97,7 +97,7 @@ class WikiLinkTest extends KernelTestBase {
     $html = $this->renderMarkdown('See [[Deploy Runbook]] first.');
 
     $this->assertStringContainsString('class="petrichor-wikilink"', $html);
-    $this->assertStringContainsString('/kb/' . $target->id(), $html);
+    $this->assertStringContainsString('/wiki/' . $target->id(), $html);
     $this->assertStringContainsString('>Deploy Runbook</a>', $html);
     $this->assertStringNotContainsString('petrichor-wikilink--wanted', $html);
   }
@@ -126,7 +126,7 @@ class WikiLinkTest extends KernelTestBase {
     $this->assertStringContainsString('petrichor-wikilink--wanted', $html);
     $this->assertStringContainsString('data-wanted="true"', $html);
     // It points at the add form, so the red link is how the page gets written.
-    $this->assertStringContainsString('/kb/add', $html);
+    $this->assertStringContainsString('/wiki/add', $html);
 
     $key = WikiLinkService::titleKey('Deploy Runbook');
     $this->assertSame(
@@ -252,8 +252,8 @@ class WikiLinkTest extends KernelTestBase {
     $second->set('body', ['value' => 'touched', 'format' => 'markdown'])->save();
 
     $html = $this->renderMarkdown('[[Runbook]]');
-    $this->assertStringContainsString('/kb/' . $first->id(), $html);
-    $this->assertStringNotContainsString('/kb/' . $second->id(), $html);
+    $this->assertStringContainsString('/wiki/' . $first->id(), $html);
+    $this->assertStringNotContainsString('/wiki/' . $second->id(), $html);
     $this->assertStringContainsString('petrichor-wikilink--ambiguous', $html);
 
     $duplicates = $this->links->findDuplicateTitles();
@@ -299,7 +299,7 @@ class WikiLinkTest extends KernelTestBase {
     $target = $this->page('Deploy Runbook');
     $html = $this->renderMarkdown('[[Deploy Runbook|the runbook]]');
 
-    $this->assertStringContainsString('/kb/' . $target->id(), $html);
+    $this->assertStringContainsString('/wiki/' . $target->id(), $html);
     $this->assertStringContainsString('>the runbook</a>', $html);
   }
 

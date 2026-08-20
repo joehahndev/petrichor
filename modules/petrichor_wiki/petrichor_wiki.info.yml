@@ -1,6 +1,6 @@
 name: 'Petrichor Wiki'
 type: module
-description: 'Knowledge base / wiki pages — hierarchical, markdown-first, optionally scoped to a project.'
+description: 'Wiki pages — hierarchical, markdown-first, optionally scoped to a project.'
 package: 'Petrichor PM'
 core_version_requirement: ^11.1
 dependencies:

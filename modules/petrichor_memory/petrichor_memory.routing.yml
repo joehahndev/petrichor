@@ -5,3 +5,19 @@ petrichor_memory.settings:
     _title: 'Memory settings'
   requirements:
     _permission: 'administer petrichor'
+
+petrichor_memory.set_status:
+  path: '/pm/memory/{petrichor_memory}/status/{status}'
+  defaults:
+    _controller: '\Drupal\petrichor_memory\Controller\MemoryStatusController::setStatus'
+  requirements:
+    # Entity access first, then a CSRF token, because this changes state from
+    # a GET link. Without the token a crafted image tag on any page a
+    # maintainer visits could archive their memories.
+    _entity_access: 'petrichor_memory.update'
+    _csrf_token: 'TRUE'
+    status: 'proposed|active|archived'
+  options:
+    parameters:
+      petrichor_memory:
+        type: 'entity:petrichor_memory'

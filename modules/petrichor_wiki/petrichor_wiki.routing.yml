@@ -1,4 +1,4 @@
-# Reading routes for the knowledge base.
+# Reading routes for the wiki.
 #
 # The first two deliberately reuse the names DefaultHtmlRouteProvider would
 # generate. .routing.yml is loaded at RoutingEvents::STATIC; entity route
@@ -9,27 +9,27 @@
 # annotation is being reworked for revisions.
 #
 # Two consequences of taking `canonical` off _entity_view, both accepted:
-#   - Field UI's "Manage display" for wiki pages no longer affects /kb/{id}.
+#   - Field UI's "Manage display" for wiki pages no longer affects /wiki/{id}.
 #     The reading experience is the product here; a configurable field stack
 #     cannot deliver breadcrumbs, child pages and backlinks.
 #   - hook_ENTITY_TYPE_view() no longer fires for the page route.
-# In exchange the KB stops jumping into Claro: AdminHtmlRouteProvider's
+# In exchange the wiki stops jumping into Claro: AdminHtmlRouteProvider's
 # _admin_route is simply never set, which ARCHITECTURE.md records as the board's
 # one visible rough edge.
 
 entity.petrichor_wiki_page.collection:
-  path: '/kb'
+  path: '/wiki'
   defaults:
     _controller: 'Drupal\petrichor_wiki\Controller\WikiController::index'
-    _title: 'Knowledge base'
+    _title: 'Wiki'
   requirements:
     # The provider-generated collection route required `administer petrichor`
-    # (it ANDs the admin and collection permissions). Reading the KB is not an
+    # (it ANDs the admin and collection permissions). Reading the wiki is not an
     # administrative act, so the index drops to the ordinary view permission.
     _permission: 'view petrichor content'
 
 entity.petrichor_wiki_page.canonical:
-  path: '/kb/{petrichor_wiki_page}'
+  path: '/wiki/{petrichor_wiki_page}'
   defaults:
     _controller: 'Drupal\petrichor_wiki\Controller\WikiController::page'
     # The page title is the page's label, rendered as the theme's <h1>. The
@@ -39,7 +39,7 @@ entity.petrichor_wiki_page.canonical:
   requirements:
     _permission: 'view petrichor content'
     _entity_access: 'petrichor_wiki_page.view'
-    # Serial IDs only. Also what keeps /kb/wanted and /kb/add unambiguous —
+    # Serial IDs only. Also what keeps /wiki/wanted and /wiki/add unambiguous —
     # they are static two-part paths and would otherwise both be candidates.
     petrichor_wiki_page: \d+
   options:
@@ -49,11 +49,11 @@ entity.petrichor_wiki_page.canonical:
 
 # The two routes below are named under the entity.petrichor_wiki_page.* family
 # on purpose, even though neither is a CRUD route: PetrichorNegotiator treats
-# that prefix plus a /kb path as a workspace route, so the companion theme and
+# that prefix plus a /wiki path as a workspace route, so the companion theme and
 # the contextual-link suppression pick them up without the base module having
 # to learn about them.
 entity.petrichor_wiki_page.wanted:
-  path: '/kb/wanted'
+  path: '/wiki/wanted'
   defaults:
     _controller: 'Drupal\petrichor_wiki\Controller\WikiController::wanted'
     _title: 'Wanted pages'
@@ -61,7 +61,7 @@ entity.petrichor_wiki_page.wanted:
     _permission: 'view petrichor content'
 
 entity.petrichor_wiki_page.search:
-  path: '/kb/search'
+  path: '/wiki/search'
   defaults:
     _controller: 'Drupal\petrichor_wiki\Controller\WikiController::search'
     _title: 'Search'
@@ -74,7 +74,7 @@ entity.petrichor_wiki_page.search:
     no_cache: TRUE
 
 entity.petrichor_wiki_page.backlinks:
-  path: '/kb/{petrichor_wiki_page}/backlinks'
+  path: '/wiki/{petrichor_wiki_page}/backlinks'
   defaults:
     _controller: 'Drupal\petrichor_wiki\Controller\WikiController::backlinks'
     _title_callback: 'Drupal\petrichor_wiki\Controller\WikiController::backlinksTitle'

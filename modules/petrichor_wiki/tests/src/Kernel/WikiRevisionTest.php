@@ -13,11 +13,12 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 /**
  * Wiki page history, as a regression test.
  *
- * PRODUCT.md measures the KB against a git-backed markdown wiki, so history is
- * not a nice-to-have here — it is the thing being compared. The failure this
- * guards against is quiet: an entity type that is revisionable in every visible
- * way while the history stays one row forever, because nothing in Drupal forks
- * a revision unless a form checkbox is ticked and MCP never sees a form.
+ * PRODUCT.md measures the wiki against a git-backed markdown wiki, so
+ * history is not a nice-to-have here — it is the thing being compared. The
+ * failure this guards against is quiet: an entity type that is revisionable
+ * in every visible way while the history stays one row forever, because
+ * nothing in Drupal forks a revision unless a form checkbox is ticked and
+ * MCP never sees a form.
  *
  * @group petrichor
  */

@@ -165,7 +165,7 @@ class DashboardTest extends BrowserTestBase {
     // petrichor_board is installed.
     $this->assertSession()->linkExists('Today');
     // petrichor_wiki and petrichor_memory are not.
-    $this->assertSession()->linkNotExists('Knowledge base');
+    $this->assertSession()->linkNotExists('Wiki');
     $this->assertSession()->linkNotExists('Memories');
   }
 

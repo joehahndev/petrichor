@@ -1,0 +1,130 @@
+/**
+ * @file
+ * The Related section on an entity page.
+ *
+ * Same token posture as wiki_tree and the board components: a petrichor_theme
+ * contract token first, a private `--petrichor-local-*` fallback second. Colour
+ * fallbacks are currentColor mixes so the section adopts the host theme's text
+ * and background rather than imposing a palette; space fallbacks are the
+ * theme's own numbers, so the geometry is identical with or without it.
+ *
+ * The `--petrichor-local-*` names are private — not part of the theme's token
+ * contract, and only ever the fallback arm of a var() on a contract token.
+ *
+ * This is a secondary reading surface. Everything here is tuned so the section
+ * reads as an aside to the page rather than a competitor to it: the rule above
+ * it separates rather than boxes, the group headings are small and quiet, and
+ * the rows are a dense column because they are scanned, not read.
+ */
+
+:where(.petrichor-related) {
+  --petrichor-local-line: color-mix(in sRGB, currentColor 18%, transparent);
+  --petrichor-local-muted: color-mix(in sRGB, currentColor 62%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(.petrichor-related) {
+    --petrichor-local-line: color-mix(in sRGB, currentColor 28%, transparent);
+  }
+}
+
+.petrichor-related {
+  /* Matches wiki_tree: every line is a title, and a title that wraps twice
+     stops being scannable. */
+  max-inline-size: min(100%, 34rem);
+  margin-block-start: var(--petrichor-space-5, 2rem);
+  padding-block-start: var(--petrichor-space-4, 1.5rem);
+  /* A rule, not a box. The section belongs to the page it hangs off; a border
+     on four sides would read as a separate card that happens to sit nearby. */
+  border-block-start: 1px solid var(--petrichor-border, var(--petrichor-local-line));
+}
+
+.petrichor-related__title {
+  margin: 0;
+  font-size: var(--petrichor-text-base, 1rem);
+  /* Weight rather than size. This has to sit below the page's own h1 and its
+     content headings without introducing a third type size to the page. */
+  font-weight: 600;
+}
+
+.petrichor-related__group {
+  margin-block-start: var(--petrichor-space-4, 1.5rem);
+}
+
+.petrichor-related__group-title {
+  margin: 0 0 var(--petrichor-space-1, 0.25rem);
+  /* The one place letter-spacing is used in the suite. These headings are
+     labels for the rows beneath them, not prose, and the tracking is what
+     stops a 0.875rem bold line from reading as an undersized paragraph. */
+  letter-spacing: 0.02em;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-weight: 600;
+}
+
+.petrichor-related__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.petrichor-related__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--petrichor-space-2, 0.5rem);
+  /* Stated because a host theme styling bare `li` would otherwise add its own
+     rhythm on top of this one. */
+  margin: 0;
+  padding: 0;
+}
+
+.petrichor-related__link {
+  display: flex;
+  align-items: center;
+  /* Colour and underline are deliberately not reset — see wiki_tree.css for
+     the full reasoning. Whether a link looks like a link belongs to the theme;
+     all this does is soften the rule so a dense column does not become
+     stripes. */
+  text-decoration-color: var(--petrichor-border, var(--petrichor-local-line));
+  text-underline-offset: 0.15em;
+  font-size: var(--petrichor-text-base, 1rem);
+  line-height: 1.4;
+  /* The touch floor, and the reason a near-miss in a dense column of adjacent
+     targets lands on nothing rather than on the wrong record. */
+  min-block-size: 2.25rem;
+  padding-block: var(--petrichor-space-1, 0.25rem);
+}
+
+a.petrichor-related__link:hover,
+a.petrichor-related__link:focus-visible {
+  text-decoration-line: underline;
+  text-decoration-color: currentColor;
+}
+
+a.petrichor-related__link:focus-visible {
+  border-radius: var(--petrichor-radius, 6px);
+  outline: 3px solid var(--petrichor-focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Not a link — an entity type with no canonical route. Colour is stated
+   because this is not an anchor and must not pick up a link colour if a theme
+   styles the class rather than the element. */
+.petrichor-related__link--plain {
+  cursor: default;
+  color: inherit;
+  text-decoration-line: none;
+}
+
+.petrichor-related__meta {
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.petrichor-related__note {
+  margin: var(--petrichor-space-1, 0.25rem) 0 0;
+  color: var(--petrichor-text-muted, var(--petrichor-local-muted));
+  font-size: var(--petrichor-text-sm, 0.875rem);
+}

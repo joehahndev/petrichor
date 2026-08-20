@@ -8,7 +8,7 @@ brief, the open tasks, the wiki page and the decisions already made, does the
 work, and writes back what it did. You review it afterwards in a normal Drupal
 UI, on entities you can extend with Field UI and list with Views.
 
-Projects, a knowledge base and agent memory ship together for one reason: an
+Projects, a wiki and agent memory ship together for one reason: an
 agent needs all three **in the same scope** to be useful. What am I working on,
 what do we already know about it, and what did we decide last time are three
 halves of one question. Split across three tools they are three logins, three id
@@ -49,10 +49,10 @@ is the right next step — everything else in the suite lives inside one.
    or due within a week, and everything high or urgent. It does *not* require
    due dates, on purpose — an empty "what should I do today" is worse than a
    slightly generous one.
-5. **Write something down.** `/kb` is the wiki; `/kb/add` makes a page. Inside
+5. **Write something down.** `/wiki` is the wiki; `/wiki/add` makes a page. Inside
    the body write `[[Another page]]`. That link works whether or not the page
    exists yet — if it doesn't, the link is dashed and clicking it opens the add
-   form with the title filled in. `/kb/wanted` lists every page something has
+   form with the title filled in. `/wiki/wanted` lists every page something has
    linked to but nobody has written.
 6. **Log a comment on a task.** The worklog is what makes the project activity
    feed worth reading, and it is what an agent appends to as it works.
@@ -141,6 +141,9 @@ Ask the agent, in plain language:
 - *"Add a task to fix the contact form, high priority."*
 - *"Log what you just did on task 4, and record 45 minutes against it."*
 
+Those prove the connection works. [What to ask it](#what-to-ask-it) below is
+the longer answer — the prompts that make the suite worth having.
+
 ### 5. Tell it which project it is in
 
 An agent opening a code repository has no idea which Petrichor project that
@@ -154,6 +157,64 @@ Petrichor project: 12 — Acme redesign
 The client reads that file before its first tool call, so the id costs nothing.
 Failing that, `list_projects` takes a `query` and will find a project by name or
 client.
+
+---
+
+## What to ask it
+
+Plain language is the interface. There is no command syntax to learn: the
+client reads the tool descriptions and maps what you said onto them, so *"what's
+overdue on the redesign?"* becomes a filtered `list_tasks` call without you
+knowing that tool exists. The one exception is the three server-side prompts —
+`daily_standup`, `weekly_review` and `project_status` — which Claude Code
+surfaces as slash commands (`/mcp__petrichor__daily_standup` and friends), and
+other clients expose however they expose MCP prompts.
+
+What follows is not a syntax reference, then, but a working rhythm — the
+prompts that turn a task list an agent can see into a record that pays for
+itself.
+
+**Opening a session.** Start with *"get me up to speed on project 12"*
+(`get_project_context`): the brief, open tasks, recent activity, milestones,
+the wiki index and the project's memories, in one call tuned to cost a few
+thousand tokens. Start a day with *"what should I work on?"* (`get_my_work`) —
+overdue and in-progress first, blocked work last, no due dates required.
+
+**While working.** *"Add a task to migrate the webform config, high priority,
+due Friday."* *"Break that into subtasks."* *"Mark it blocked — waiting on the
+client's API key."* Statuses, priorities and the blocked flag are ordinary
+fields; the agent sets them the way you would on the form.
+
+**Closing a loop.** *"Log what we just did as a comment on that task, and
+record two hours of development."* The comment lands in the worklog the
+activity feed reads; the hours land in a timesheet. This is the habit that
+makes the project history worth having — an agent that works without logging
+leaves a project that looks untouched.
+
+**When a decision gets made.** *"Remember that this client's staging server
+ignores `.htaccess`."* Under the default policy the memory is stored as
+*proposed* and stays invisible until you say *"confirm that memory"* — so also
+ask, now and then, *"list proposed memories."* Later, in another session,
+*"what do we know about deployments here?"* (`recall`) brings it back, and
+looking at a related task surfaces it unasked.
+
+**Finding what connects.** *"What else is related to this task?"* — tag
+siblings across tasks, memories and wiki pages, plus the decisions that mention
+it. Tag things as you go and this is what the tags pay for.
+
+**When something is worth keeping.** *"Write up what we learned about that
+caching bug as a wiki page under this project."* *"Append today's findings to
+the deployment-notes page."* *"What pages are wanted but not written?"* — that
+last one is a ready-made backlog of documentation the wiki already knows it is
+missing.
+
+**Looking back.** The three slash commands above are canned versions of this:
+a standup from live task state, a weekly review from timesheets and decisions,
+a project status written to the wiki where the next session will find it.
+
+If the rhythm is too much to hold onto, keep the trio: open with context,
+close with a comment and a time entry, say *remember* when something gets
+decided. Everything else is reachable from there.
 
 ---
 
@@ -172,8 +233,9 @@ submodule, so the tool surface is exactly what you turned on.
 | `petrichor_comments` | Worklog comments and the project activity feed | tasks |
 | `petrichor_board` | Drag-and-drop kanban board and Today view | tasks |
 | `petrichor_markdown` | A "Markdown" text format via `league/commonmark` | — |
-| `petrichor_wiki` | KB pages: hierarchy, `[[wiki links]]`, backlinks, revisions | `petrichor` |
+| `petrichor_wiki` | wiki pages: hierarchy, `[[wiki links]]`, backlinks, revisions | `petrichor` |
 | `petrichor_memory` | Reviewable, project-scoped memory for agents | projects |
+| `petrichor_tags` | One shared tag vocabulary across memories, tasks and wiki pages — and the Related section that reads it | `petrichor`, taxonomy |
 | `petrichor_mcp` | The MCP server at `/mcp` | projects |
 
 `petrichor_mcp` deliberately depends on nothing but projects. Each of the other
@@ -190,9 +252,37 @@ comes back, and how to keep an agent from writing things you did not agree to.
 
 ---
 
+## Related
+
+Tasks, memories and wiki pages share one tag vocabulary, so a word typed on a
+task and the same word typed on a memory are the same term. **Related** is what
+reads that: a short section on a task, a memory or a wiki page listing the other
+records that carry its tags, plus — on a task — the decisions and preferences
+that mention it, which until now only an agent calling `get_task` ever saw.
+
+Agents get the same lists from **`get_related`**, which is how the page and the
+assistant stay in agreement about what connects to what.
+
+Two things it deliberately does not do:
+
+- **It matches on tags and nothing else.** No title similarity, no body search.
+  A tag is somebody asserting a connection; everything else is a guess, and
+  this suite has already measured what guessing costs — see the *related
+  memories* section of the [agent memory docs](modules/petrichor_memory/README.md).
+- **It renders nothing when nothing is related.** An untagged record gets no
+  section, not an empty one. A panel that is usually empty is a panel people
+  stop reading.
+
+It appears wherever `petrichor_tags` is installed, and disappears cleanly when
+it is not. Each entity type's Related section is an ordinary extra field, so
+you can reorder or switch it off per entity at
+**Structure → Petrichor → {entity} → Manage display**.
+
+---
+
 ## How it looks in your theme
 
-`/pm` and `/kb` render in your site's front-end theme by default. The module
+`/pm` and `/wiki` render in your site's front-end theme by default. The module
 ships no theme and no palette: every colour reads a `--petrichor-*` design token
 first and falls back to a `currentColor` mix, so it adopts your theme's text and
 background rather than fighting them, in light mode and dark.
@@ -209,10 +299,16 @@ before you judge it:
   region does this; it is a property of prose layouts, not a bug in either.
 
 If that bothers you, turn on **"Use the Petrichor theme for the workspace"** in
-the settings form. Everything under `/pm` and `/kb` then renders full-width in
-the bundled `petrichor_theme`, and **nothing else on your site changes** — every
-other page keeps the theme it has now. It is off by default because a contrib
-module should never quietly repaint a site it was installed into.
+the settings form. Everything under `/pm` and `/wiki` then renders full-width in
+`petrichor_theme`, and **nothing else on your site changes** — every other page
+keeps the theme it has now. It is off by default because a contrib module
+should never quietly repaint a site it was installed into.
+
+The theme ships inside this package, at `themes/petrichor_theme`, so
+`composer require drupal/petrichor` brings it with everything else. Install it
+from the Appearance page — it does **not** have to be your site default; the
+setting above is what puts it in front of the workspace pages and nothing
+else.
 
 If you would rather keep your own theme and give the board room, define the
 token contract in it (`--petrichor-surface`, `--petrichor-border`,
@@ -322,7 +418,7 @@ Two things that used to be listed as caveats are now checked by the test suite:
 
 - **Every module installs, uninstalls and reinstalls cleanly**, and each has
   help you can read from the Extend page — Drupal's own `GenericModuleTestBase`
-  is enrolled for all eleven.
+  is enrolled for all twelve.
 - **The à-la-carte install works.** The MCP server runs on `petrichor_projects`
   alone, and the tool list an agent is offered is exactly what you enabled.
 

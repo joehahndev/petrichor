@@ -15,3 +15,18 @@ services:
     arguments: ['@current_route_match']
     tags:
       - { name: cache.context }
+
+  petrichor.related:
+    class: Drupal\petrichor\Related\RelatedRegistry
+    # Providers come from submodules — this module depends on none of them and
+    # must not learn that tasks or memories exist. An install with no provider
+    # gets an empty registry and no Related section anywhere, which is the
+    # correct à-la-carte behaviour rather than a degraded one.
+    arguments: [!tagged_iterator petrichor.related_provider]
+
+  # Registered explicitly rather than left to core's hook autowiring, because
+  # the registry's service id is not its class name and autowiring could not
+  # resolve it. Core still adds the hook tags from the #[Hook] attributes.
+  Drupal\petrichor\Hook\PetrichorRelatedHooks:
+    class: Drupal\petrichor\Hook\PetrichorRelatedHooks
+    arguments: ['@entity_type.manager', '@petrichor.related']

@@ -9,14 +9,14 @@
  */
 #}
 <form {{ attributes.addClass('petrichor-search-form') }} action="{{ action }}" method="get" role="search">
-  <label class="visually-hidden" for="petrichor-search-form__q">{{ 'Search the knowledge base'|t }}</label>
+  <label class="visually-hidden" for="petrichor-search-form__q">{{ 'Search the wiki'|t }}</label>
   <input
     class="petrichor-search-form__input"
     type="search"
     name="q"
     id="petrichor-search-form__q"
     value="{{ query|default('') }}"
-    placeholder="{{ 'Search the knowledge base…'|t }}"
+    placeholder="{{ 'Search the wiki…'|t }}"
     autocomplete="off">
   <button class="petrichor-search-form__submit" type="submit">{{ 'Search'|t }}</button>
 </form>

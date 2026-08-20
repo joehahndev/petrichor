@@ -70,7 +70,7 @@ final class PetrichorNegotiator implements ThemeNegotiatorInterface {
   /**
    * Path prefixes the workspace occupies.
    */
-  private const PATH_PREFIXES = ['/pm', '/kb'];
+  private const PATH_PREFIXES = ['/pm', '/wiki'];
 
   public function __construct(
     protected ConfigFactoryInterface $configFactory,
@@ -118,7 +118,7 @@ final class PetrichorNegotiator implements ThemeNegotiatorInterface {
    *   The route match to test.
    *
    * @return bool
-   *   TRUE for workspace routes under /pm or /kb.
+   *   TRUE for workspace routes under /pm or /wiki.
    */
   public static function isWorkspaceRoute(RouteMatchInterface $route_match): bool {
     $name = (string) $route_match->getRouteName();

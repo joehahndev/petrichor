@@ -7,7 +7,7 @@ namespace Drupal\petrichor_wiki;
 use Drupal\petrichor_mcp\McpToolProviderBase;
 
 /**
- * MCP tools for the wiki/KB. Thin: every tool delegates to WikiService.
+ * MCP tools for the wiki. Thin: every tool delegates to WikiService.
  *
  * Six tools, and each one answers a question none of the others can. Search
  * finds pages you can already name; the tree answers "what is in here" for an
@@ -34,7 +34,7 @@ class WikiToolProvider extends McpToolProviderBase {
     return [
       [
         'name' => 'search_wiki',
-        'description' => 'Search wiki/KB pages. Results are ranked (title matches beat body matches, pages other pages link to rank higher) and each carries a plain-text snippet around the match, so relevance can be judged without fetching the page. Optional project_id filter.',
+        'description' => 'Search wiki pages. Results are ranked (title matches beat body matches, pages other pages link to rank higher) and each carries a plain-text snippet around the match, so relevance can be judged without fetching the page. Optional project_id filter.',
         'inputSchema' => [
           'type' => 'object',
           'required' => ['query'],
@@ -56,11 +56,11 @@ class WikiToolProvider extends McpToolProviderBase {
       ],
       [
         'name' => 'list_wiki_tree',
-        'description' => 'Nested KB page hierarchy. Use before searching, to see what exists rather than guess it may not. max_depth limits depth; page_id expands one branch; project_id scopes to a project.',
+        'description' => 'Nested wiki page hierarchy. Use before searching, to see what exists rather than guess it may not. max_depth limits depth; page_id expands one branch; project_id scopes to a project.',
         'inputSchema' => [
           'type' => 'object',
           'properties' => [
-            'project_id' => ['type' => 'integer', 'description' => 'Omit for the whole knowledge base'],
+            'project_id' => ['type' => 'integer', 'description' => 'Omit for the whole wiki'],
             'page_id' => [
               'type' => 'integer',
               'description' => 'Expand only the branch leading to this page, plus its children',
@@ -84,7 +84,7 @@ class WikiToolProvider extends McpToolProviderBase {
       ],
       [
         'name' => 'create_wiki_page',
-        'description' => 'Create a wiki/KB page (markdown body). Optional parent_id for hierarchy, project_id to scope. Write [[Page Title]] to link another page — the target does not have to exist yet.',
+        'description' => 'Create a wiki page (markdown body). Optional parent_id for hierarchy, project_id to scope. Write [[Page Title]] to link another page — the target does not have to exist yet.',
         'inputSchema' => [
           'type' => 'object',
           'required' => ['title'],

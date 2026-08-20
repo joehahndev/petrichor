@@ -16,11 +16,11 @@ use Drupal\petrichor\Entity\PetrichorEntityBase;
 /**
  * The Wiki page entity.
  *
- * A Leantime improvement rather than a port: hierarchical KB pages (parent
+ * A Leantime improvement rather than a port: hierarchical wiki pages (parent
  * reference), markdown-first body, optionally scoped to a project (empty
- * project = global knowledge base).
+ * project = global wiki).
  *
- * Revisionable because PRODUCT.md measures the KB against a git-backed
+ * Revisionable because PRODUCT.md measures the wiki against a git-backed
  * markdown wiki: without history there is nothing to compare. The revision
  * log message is the agent-facing half of that — "what changed" is derivable
  * from a diff, "why" is not, and only the writer knows it at write time.
@@ -64,15 +64,15 @@ use Drupal\petrichor\Entity\PetrichorEntityBase;
     ],
   ],
   links: [
-    'canonical' => '/kb/{petrichor_wiki_page}',
-    'add-form' => '/kb/add',
-    'edit-form' => '/kb/{petrichor_wiki_page}/edit',
-    'delete-form' => '/kb/{petrichor_wiki_page}/delete',
-    'collection' => '/kb',
-    'version-history' => '/kb/{petrichor_wiki_page}/revisions',
-    'revision' => '/kb/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/view',
-    'revision-revert-form' => '/kb/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/revert',
-    'revision-delete-form' => '/kb/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/delete',
+    'canonical' => '/wiki/{petrichor_wiki_page}',
+    'add-form' => '/wiki/add',
+    'edit-form' => '/wiki/{petrichor_wiki_page}/edit',
+    'delete-form' => '/wiki/{petrichor_wiki_page}/delete',
+    'collection' => '/wiki',
+    'version-history' => '/wiki/{petrichor_wiki_page}/revisions',
+    'revision' => '/wiki/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/view',
+    'revision-revert-form' => '/wiki/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/revert',
+    'revision-delete-form' => '/wiki/{petrichor_wiki_page}/revisions/{petrichor_wiki_page_revision}/delete',
   ],
   admin_permission: 'administer petrichor',
   base_table: 'petrichor_wiki_page',
@@ -132,8 +132,8 @@ class WikiPage extends PetrichorEntityBase implements RevisionLogInterface {
 
     // parent/project/weight are revisionable for one reason: a revision has to
     // be an honest snapshot of the page, and where a page sits in the tree is
-    // part of what the page *is* in a KB. Left non-revisionable they would live
-    // in the base table only, so viewing a year-old revision would show today's
+    // part of what the page *is* in a wiki. Left non-revisionable they would
+    // live in the base table only, so a year-old revision would show today's
     // location and reverting would restore the text but not the structure — a
     // quiet lie in exactly the feature whose job is to be trustworthy.
     //
@@ -154,7 +154,7 @@ class WikiPage extends PetrichorEntityBase implements RevisionLogInterface {
 
     $fields['project'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Project'))
-      ->setDescription(t('Leave empty for the global knowledge base.'))
+      ->setDescription(t('Leave empty for the global wiki.'))
       ->setSetting('target_type', 'petrichor_project')
       ->setRevisionable(TRUE)
       ->setDisplayOptions('form', [
@@ -187,7 +187,7 @@ class WikiPage extends PetrichorEntityBase implements RevisionLogInterface {
    * because everything except the history itself keeps working.
    *
    * Defaulting on rather than off is a judgement about this entity type in
-   * particular: for a knowledge base the history IS the product, so an
+   * particular: for a wiki the history IS the product, so an
    * unrecorded edit is the expensive mistake and a surplus revision is the
    * cheap one. Callers that genuinely want an in-place correction opt out with
    * setSyncing(TRUE) — the same signal core uses for writes that represent no

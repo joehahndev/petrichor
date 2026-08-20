@@ -1,0 +1,49 @@
+{#
+/**
+ * @file
+ * Grouped lists of records related to the one being viewed.
+ *
+ * No <nav> landmarks. wiki_tree uses one because it is the primary way around
+ * the wiki; three related groups on a task page would add three more
+ * landmarks to every entity page in the suite and make the landmark list worse
+ * at the one job it has. Headings carry the structure instead, which is what
+ * heading navigation is for.
+ *
+ * The whole section is suppressed when there are no groups. An empty box that
+ * is usually empty is how a feature teaches people to stop reading it.
+ */
+#}
+{% if groups is not empty %}
+  <section {{ attributes.addClass('petrichor-related') }}>
+    <h2 class="petrichor-related__title">{{ title|default('Related'|t) }}</h2>
+
+    {% for group in groups %}
+      <div class="petrichor-related__group">
+        <h3 class="petrichor-related__group-title">{{ group.label }}</h3>
+
+        <ul class="petrichor-related__list">
+          {% for item in group.items %}
+            <li class="petrichor-related__item">
+              {% if item.url %}
+                <a class="petrichor-related__link" href="{{ item.url }}">{{ item.title }}</a>
+              {% else %}
+                {# No canonical route for this entity type. The title still
+                   renders — knowing the record exists is worth something even
+                   when there is nowhere to send you. #}
+                <span class="petrichor-related__link petrichor-related__link--plain">{{ item.title }}</span>
+              {% endif %}
+
+              {% if item.meta %}
+                <span class="petrichor-related__meta">{{ item.meta }}</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+        {% if group.note %}
+          <p class="petrichor-related__note">{{ group.note }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </section>
+{% endif %}

@@ -42,3 +42,7 @@ services:
     arguments: ['@petrichor_wiki.service']
     tags:
       - { name: petrichor_mcp.tool_provider }
+  petrichor_wiki.legacy_kb_path_subscriber:
+    class: Drupal\petrichor_wiki\EventSubscriber\LegacyKbPathSubscriber
+    tags:
+      - { name: event_subscriber }

@@ -28,3 +28,14 @@ services:
     arguments: ['@petrichor_mcp.context']
     tags:
       - { name: petrichor_mcp.tool_provider }
+  petrichor_mcp.related_tool_provider:
+    class: Drupal\petrichor_mcp\RelatedToolProvider
+    # '@?' for the same reason as the context service above, with one extra:
+    # the registry lives in the base module, and although this module hard-
+    # depends on it in info.yml, a kernel test can and does build a container
+    # holding petrichor_mcp alone. No registry means no tool, which is the
+    # same answer this provider already gives when no submodule contributes
+    # relatedness.
+    arguments: ['@?petrichor.related', '@entity_type.manager']
+    tags:
+      - { name: petrichor_mcp.tool_provider }

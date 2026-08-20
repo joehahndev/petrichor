@@ -74,7 +74,7 @@ final class PetrichorSettingsForm extends ConfigFormBase {
     $form['use_workspace_theme'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use the Petrichor theme for the workspace'),
-      '#description' => $this->t('When this is on, the board, Today, the dashboard, the wiki and the Petrichor entity pages (everything under /pm and /kb) render in the Petrichor theme instead of the site theme. Nothing else on the site changes — every other page, including the Petrichor settings pages under /admin, keeps the theme it has now. Leave it off to run Petrichor inside your existing design.'),
+      '#description' => $this->t('When this is on, the board, Today, the dashboard, the wiki and the Petrichor entity pages (everything under /pm and /wiki) render in the Petrichor theme instead of the site theme. Nothing else on the site changes — every other page, including the Petrichor settings pages under /admin, keeps the theme it has now. Leave it off to run Petrichor inside your existing design.'),
       '#config_target' => 'petrichor.settings:use_workspace_theme',
       '#disabled' => !$installed,
     ];

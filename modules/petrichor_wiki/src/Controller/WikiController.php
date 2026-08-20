@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Drupal\petrichor_wiki\Controller;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
+use Drupal\petrichor\Related\RelatedRegistry;
 use Drupal\petrichor_wiki\WikiService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * HTTP surface for reading the knowledge base.
+ * HTTP surface for reading the wiki.
  *
  * Holds no domain logic and issues no entity queries: WikiService owns the
  * tree, the breadcrumb chain, backlinks and the wanted-page report. What lives
@@ -40,15 +43,25 @@ final class WikiController extends ControllerBase {
   /**
    * Rows on the standalone list pages.
    *
-   * There is no pager. A single-user KB does not have a hundred-and-first
+   * There is no pager. A single-user wiki does not have a hundred-and-first
    * backlink worth clicking through for, and the service's truncation note
    * says so honestly rather than silently showing a worse page 2.
    */
   protected const LIST_LIMIT = 100;
 
+  /**
+   * Levels of the page tree the index draws.
+   *
+   * Roots and their children. Two is what makes the index a table of
+   * contents rather than the whole book: a project's dated entries belong on
+   * the project's page, not on the front door.
+   */
+  protected const INDEX_DEPTH = 2;
+
   public function __construct(
     protected readonly WikiService $wiki,
     protected readonly DateFormatterInterface $dateFormatter,
+    protected readonly ?RelatedRegistry $related = NULL,
   ) {}
 
   /**
@@ -58,17 +71,28 @@ final class WikiController extends ControllerBase {
     return new static(
       $container->get('petrichor_wiki.service'),
       $container->get('date.formatter'),
+      // Always defined — the registry ships with the base module this one
+      // depends on. Nullable anyway so the controller stays constructible in
+      // a test that builds it by hand without the full container.
+      $container->get('petrichor.related', ContainerInterface::NULL_ON_INVALID_REFERENCE),
     );
   }
 
   /**
-   * The KB index: the whole visible page tree.
+   * The wiki index: the whole visible page tree.
    */
   public function index(): array {
-    // Unpruned: no active page, no root, no depth limit — so getTree() also
-    // promotes any page caught in a parent cycle to a root, and the index is
-    // the one surface where every page is guaranteed to appear.
-    $tree = $this->wiki->getTree();
+    // Two levels: roots and their children. Deeper pages are reachable from
+    // their parent's own page, which lists them under "Pages in this
+    // section", so nothing becomes unreachable — it stops being reachable
+    // *from here*, which is the difference between an index and a dump. An
+    // unpruned index was fine at fourteen pages and unreadable at several
+    // hundred, and the running project log is several hundred by design.
+    //
+    // Roots are still complete: getTree() promotes cycle-trapped pages to
+    // roots under a depth limit as well, so the index keeps its guarantee
+    // that every page is reachable from somewhere.
+    $tree = $this->wiki->getTree(NULL, NULL, NULL, self::INDEX_DEPTH);
 
     return [
       'search' => $this->searchForm(''),
@@ -77,7 +101,7 @@ final class WikiController extends ControllerBase {
         '#component' => 'petrichor_wiki:wiki_tree',
         '#props' => [
           'tree' => $this->branch($tree['items']),
-          'label' => (string) $this->t('Knowledge base pages'),
+          'label' => (string) $this->t('Wiki pages'),
           'empty_text' => (string) $this->t('No pages yet. The first one is the hardest.'),
           'note' => isset($tree['note']) ? (string) $tree['note'] : NULL,
         ],
@@ -127,7 +151,23 @@ final class WikiController extends ControllerBase {
       ];
     }
 
-    return [
+    // This route overrides the entity canonical link, so hook_entity_view()
+    // never fires for a wiki page and the Related section every other entity
+    // page gets for free has to be asked for here. The override and its
+    // consequences are documented at the top of petrichor_wiki.routing.yml.
+    $related_set = NULL;
+    if ($this->related !== NULL && $petrichor_wiki_page instanceof ContentEntityInterface) {
+      $related_set = $this->related->getRelated($petrichor_wiki_page);
+      if (!$related_set->isEmpty()) {
+        $slots['related'] = [
+          '#type' => 'component',
+          '#component' => 'petrichor:related',
+          '#props' => ['groups' => $related_set->toArray()],
+        ];
+      }
+    }
+
+    $build = [
       'page' => [
         '#type' => 'component',
         '#component' => 'petrichor_wiki:wiki_page',
@@ -172,6 +212,19 @@ final class WikiController extends ControllerBase {
         'contexts' => ['user.permissions', 'timezone'],
       ],
     ];
+
+    // Merged rather than hand-written into the array above, because the
+    // section depends on entities this page does not own — every tag term and
+    // every sibling it found. Applied even when the set came back empty: a
+    // page with nothing related today still has to be invalidated by the edit
+    // that relates something to it tomorrow.
+    if ($related_set !== NULL) {
+      $metadata = CacheableMetadata::createFromRenderArray($build);
+      $metadata->addCacheableDependency($related_set);
+      $metadata->applyTo($build);
+    }
+
+    return $build;
   }
 
   /**
@@ -230,13 +283,13 @@ final class WikiController extends ControllerBase {
         '#props' => [
           'tree' => $items,
           'label' => (string) $this->t('Wanted pages'),
-          'empty_text' => (string) $this->t('Every link in the knowledge base has a page behind it.'),
+          'empty_text' => (string) $this->t('Every link in the wiki has a page behind it.'),
           'note' => $this->note($result, count($items)),
         ],
         '#slots' => [
           'footer' => [
             '#type' => 'link',
-            '#title' => $this->t('Back to the knowledge base'),
+            '#title' => $this->t('Back to the wiki'),
             '#url' => Url::fromRoute('entity.petrichor_wiki_page.collection'),
           ],
         ],
@@ -262,7 +315,7 @@ final class WikiController extends ControllerBase {
     $query = trim((string) $request->query->get('q', ''));
 
     if ($query === '') {
-      // Not an error: `/kb/search` with nothing typed yet is where the form
+      // Not an error: `/wiki/search` with nothing typed yet is where the form
       // itself lives, not a failed search. searchWiki() would throw on an
       // empty keyword, which is the right answer for the MCP tool and the
       // wrong one for a page a human can simply land on.
@@ -297,7 +350,7 @@ final class WikiController extends ControllerBase {
         '#slots' => [
           'footer' => [
             '#type' => 'link',
-            '#title' => $this->t('Back to the knowledge base'),
+            '#title' => $this->t('Back to the wiki'),
             '#url' => Url::fromRoute('entity.petrichor_wiki_page.collection'),
           ],
         ],
@@ -415,7 +468,7 @@ final class WikiController extends ControllerBase {
    */
   protected function wantedItem(array $item, bool $may_create): array {
     $title = (string) ($item['title'] ?? '');
-    // How badly the KB wants this page — a count of distinct pages linking to
+    // How badly the wiki wants this page — a count of distinct pages linking to
     // it, which is also the order the service returned these rows in.
     $wanted_by = (int) ($item['wanted_by'] ?? 0);
 

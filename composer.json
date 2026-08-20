@@ -1,6 +1,6 @@
 {
     "name": "drupal/petrichor",
-    "description": "Agent-first project management, knowledge base and persistent AI memory, with a built-in MCP server.",
+    "description": "Agent-first project management, wiki and persistent AI memory, with a built-in MCP server.",
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
     "homepage": "https://www.drupal.org/project/petrichor",

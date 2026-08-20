@@ -22,6 +22,15 @@ class TagResolver {
 
   const VOCABULARY = 'petrichor_tags';
 
+  /**
+   * Rows fetched before shared-term ranking happens in PHP.
+   *
+   * Matches MemoryService::matchMemories(), which caps its candidate set at
+   * the same number for the same reason: the ranking cannot be expressed as a
+   * query sort, so something has to bound what gets loaded to do it.
+   */
+  const CANDIDATE_CAP = 100;
+
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
   ) {}
@@ -108,6 +117,111 @@ class TagResolver {
       $names[] = (string) $term->label();
     }
     return $names;
+  }
+
+  /**
+   * The term ids on one entity's `tags` field, in stored order.
+   *
+   * The id-shaped counterpart to namesFor(). Relatedness compares ids, never
+   * names: two entities are related because they point at the same term, and
+   * going back out to names to compare them would reintroduce exactly the
+   * case-sensitivity this class exists to remove.
+   */
+  public function idsFor(ContentEntityInterface $entity): array {
+    if (!$entity->hasField('tags') || $entity->get('tags')->isEmpty()) {
+      return [];
+    }
+    $ids = [];
+    foreach ($entity->get('tags') as $item) {
+      $ids[] = (int) $item->target_id;
+    }
+    return array_values(array_unique($ids));
+  }
+
+  /**
+   * Entities of one type carrying at least one of the given terms.
+   *
+   * The third edge of this class. resolveNames() is names to ids and
+   * namesFor() is entity to names; until this existed nothing could ask the
+   * question a Related section is made of — *which records carry this term*.
+   *
+   * One query per entity type, by necessity rather than by oversight: `tags`
+   * is a base field on three separate entity types with three separate
+   * storage tables and no shared index, so there is no single query that
+   * spans them. At this suite's scale — tens of tags, thousands of rows — the
+   * three lookups are cheaper than the index that would avoid them.
+   *
+   * Ranking is done in PHP because an entity query cannot order by "how many
+   * of these targets matched". The candidate set is capped before that, so
+   * the sort is over at most CANDIDATE_CAP rows however large the site gets;
+   * the reported total is the honest count, not the capped one.
+   *
+   * @param int[] $term_ids
+   *   Terms to match. An empty array matches nothing and returns early —
+   *   never "everything", which is the failure mode that would put an
+   *   unrelated list on every untagged page in the suite.
+   * @param string $entity_type_id
+   *   The entity type to search.
+   * @param int|null $exclude_id
+   *   An entity to leave out, normally the one being viewed.
+   * @param array $conditions
+   *   Extra field conditions as name => value, e.g. ['status' => 'active'].
+   * @param int $limit
+   *   Maximum entities to return.
+   *
+   * @return array{entities: \Drupal\Core\Entity\ContentEntityInterface[], total: int, overlap: array<int, int>}
+   *   Entities ranked by shared-term count then recency; the total number that
+   *   matched before the limit was applied; and the shared-term count per
+   *   entity id, which the caller needs to say *why* a row is in the list.
+   */
+  public function entitiesSharing(array $term_ids, string $entity_type_id, ?int $exclude_id = NULL, array $conditions = [], int $limit = 5): array {
+    $empty = ['entities' => [], 'total' => 0, 'overlap' => []];
+    if ($term_ids === [] || $limit < 1) {
+      return $empty;
+    }
+
+    $storage = $this->entityTypeManager->getStorage($entity_type_id);
+    $query = $storage->getQuery()
+      // Access-checked: a related list must never disclose the existence of
+      // something the viewer cannot open.
+      ->accessCheck(TRUE)
+      ->condition('tags', $term_ids, 'IN');
+    foreach ($conditions as $field => $value) {
+      $query->condition($field, $value);
+    }
+    if ($exclude_id !== NULL) {
+      $query->condition($storage->getEntityType()->getKey('id'), $exclude_id, '<>');
+    }
+
+    $total = (int) (clone $query)->count()->execute();
+    if ($total === 0) {
+      return $empty;
+    }
+
+    $ids = $query
+      ->sort('changed', 'DESC')
+      ->range(0, self::CANDIDATE_CAP)
+      ->execute();
+    if (!$ids) {
+      return ['entities' => [], 'total' => $total, 'overlap' => []];
+    }
+
+    $entities = $storage->loadMultiple($ids);
+    $overlap = [];
+    foreach ($entities as $id => $entity) {
+      $overlap[$id] = count(array_intersect($this->idsFor($entity), $term_ids));
+    }
+
+    uasort($entities, function ($a, $b) use ($overlap): int {
+      return ($overlap[$b->id()] <=> $overlap[$a->id()])
+        ?: ((int) $b->get('changed')->value <=> (int) $a->get('changed')->value);
+    });
+
+    return [
+      'entities' => array_slice(array_values($entities), 0, $limit),
+      'total' => $total,
+      'overlap' => $overlap,
+    ];
   }
 
   /**

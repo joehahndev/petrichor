@@ -1,7 +1,7 @@
 $schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
 name: Wiki page
 status: experimental
-description: 'One knowledge-base page laid out for reading: where it sits, who wrote it, the prose, what is under it, and what points at it. Ships no JavaScript. The body arrives as a slot rather than a prop because it is a render array — the markdown filter resolves wiki links during processing and returns their cache tags, and a string prop would strand them.'
+description: 'One wiki page laid out for reading: where it sits, who wrote it, the prose, what is under it, and what points at it. Ships no JavaScript. The body arrives as a slot rather than a prop because it is a render array — the markdown filter resolves wiki links during processing and returns their cache tags, and a string prop would strand them.'
 
 props:
   type: object
@@ -76,3 +76,6 @@ slots:
   page_actions:
     title: Page actions
     description: 'Controls beside the page metadata — Edit, and whatever a host site adds. Empty for a reader with no update access.'
+  related:
+    title: Related
+    description: 'A petrichor:related component, passed whole rather than as props so this page shows the same Related section as every other entity in the suite. Unfilled when petrichor_tags is not installed or the page carries no tags — /wiki/{id} is served by a controller, so the entity view hook that places this everywhere else never fires here.'

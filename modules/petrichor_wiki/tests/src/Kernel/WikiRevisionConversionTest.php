@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  * The revisionable conversion, against data that predates it.
  *
  * Petrichor_wiki_update_11001() is the only code in this suite that can lose a
- * knowledge base, and the same code runs on other people's sites where the
+ * wiki, and the same code runs on other people's sites where the
  * data is not ours and the snapshot is not ours to take. WikiRevisionTest
  * covers revisions once they exist; this covers becoming revisionable at all.
  *

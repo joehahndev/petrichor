@@ -1,7 +1,7 @@
 {#
 /**
  * @file
- * One knowledge-base page, laid out for reading.
+ * One wiki page, laid out for reading.
  *
  * Headings start at <h2>: the route supplies the page title, which the theme
  * renders as the <h1>. Same division of labour as petrichor_board:board, and
@@ -38,7 +38,7 @@
         {{ 'By @name'|t({'@name': page.author_name}) }}
         {#
           Written by a person or written by an agent is the single most useful
-          fact about a KB page that is not in its text, and it is a fact about
+          fact about a wiki page that is not in its text, and it is a fact about
           the account, not about the prose — so it is stated, not styled.
         #}
         {% if page.author_is_agent %}
@@ -102,6 +102,17 @@
       {% endif %}
     </section>
   {% endif %}
+
+  {#
+    Tag-based relations, after the link-based ones. "What links here" is a
+    fact — somebody typed that link — and this is an inference from a shared
+    tag, so it reads second. The slot carries a whole petrichor:related
+    component rather than props, which is what keeps one Related section on
+    every entity page in the suite instead of a wiki-shaped copy of it.
+
+    Always rendered, collapsed by :empty when the controller passes no slot.
+  #}
+  <div class="petrichor-wiki-page__related">{% block related %}{% endblock %}</div>
 
   {# Last, and quiet. It is a caveat about the two lists above, not news. #}
   {% if note|default(null) %}

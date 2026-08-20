@@ -70,7 +70,23 @@ agent might ignore or forget between sessions.
 
 It also does not interrupt you. The agent records, tells you what it recorded,
 and carries on; the memories queue up at `/pm/memories` and you review them when
-you feel like it. Confirm one with the `confirm_memory` tool or by editing it.
+you feel like it.
+
+### Working through the queue
+
+Every memory carries one-click buttons — **Confirm**, **Archive**, **Send back
+for review** — on its own page and as row operations in the `/pm/memories`
+list, so a review pass is one click per memory rather than a trip through the
+edit form. Acting from the list returns you to the list, which is the whole
+point when there are nine of them.
+
+Only the buttons that make sense appear: never one for the status a memory is
+already in, and **Archive** only for someone holding *archive petrichor
+memories* — the same permission the `forget` tool enforces, because a control
+that always fails is worse than no control. Archiving sets a status; it never
+deletes a row.
+
+Agents do the same things with `confirm_memory` and `forget`.
 
 Under **Only when asked**, the refusal tells the agent how to proceed if you
 genuinely did ask (`requested: true`) rather than just failing. In every mode the

@@ -7,10 +7,10 @@ namespace Drupal\Tests\petrichor_wiki\Functional;
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * The human half of search_wiki: a box on /kb, and a results page.
+ * The human half of search_wiki: a box on /wiki, and a results page.
  *
  * The search_wiki MCP tool has existed since the wiki module shipped, with
- * no human-facing equivalent — a reader at /kb could browse the tree or check
+ * no human-facing equivalent — a reader at /wiki could browse the tree or check
  * "wanted pages", never search by content. This is that gap closed.
  *
  * @group petrichor
@@ -51,14 +51,14 @@ class WikiSearchTest extends BrowserTestBase {
    */
   public function testIndexHasSearchBox(): void {
     $this->drupalLogin($this->drupalCreateUser(['view petrichor content']));
-    $this->drupalGet('/kb');
+    $this->drupalGet('/wiki');
 
     $this->assertSession()->elementExists('css', 'input[name="q"]');
-    $this->assertSession()->elementExists('css', 'form[action*="/kb/search"]');
+    $this->assertSession()->elementExists('css', 'form[action*="/wiki/search"]');
   }
 
   /**
-   * Landing on /kb/search with nothing typed is the empty box, not an error.
+   * Landing on /wiki/search with nothing typed is the empty box, not an error.
    *
    * WikiService::searchWiki() throws on an empty keyword — that is correct
    * for an MCP tool call that should never happen, and wrong for a page a
@@ -66,7 +66,7 @@ class WikiSearchTest extends BrowserTestBase {
    */
   public function testEmptyQueryShowsTheFormNotAnError(): void {
     $this->drupalLogin($this->drupalCreateUser(['view petrichor content']));
-    $this->drupalGet('/kb/search');
+    $this->drupalGet('/wiki/search');
 
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->elementExists('css', 'input[name="q"]');
@@ -80,7 +80,7 @@ class WikiSearchTest extends BrowserTestBase {
     $this->page('Unrelated Page', 'Nothing to do with deployment.');
 
     $this->drupalLogin($this->drupalCreateUser(['view petrichor content']));
-    $this->drupalGet('/kb/search', ['query' => ['q' => 'litestream']]);
+    $this->drupalGet('/wiki/search', ['query' => ['q' => 'litestream']]);
 
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->linkExists('Deploy Runbook');
@@ -95,7 +95,7 @@ class WikiSearchTest extends BrowserTestBase {
     $this->page('Deploy Runbook', 'Run the litestream restore script.');
 
     $this->drupalLogin($this->drupalCreateUser(['view petrichor content']));
-    $this->drupalGet('/kb/search', ['query' => ['q' => 'nonexistentxyz']]);
+    $this->drupalGet('/wiki/search', ['query' => ['q' => 'nonexistentxyz']]);
 
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->pageTextContains('Nothing matched "nonexistentxyz"');
@@ -108,16 +108,16 @@ class WikiSearchTest extends BrowserTestBase {
     $this->page('Deploy Runbook', 'Run the litestream restore script.');
 
     $this->drupalLogin($this->drupalCreateUser(['view petrichor content']));
-    $this->drupalGet('/kb/search', ['query' => ['q' => 'litestream']]);
+    $this->drupalGet('/wiki/search', ['query' => ['q' => 'litestream']]);
 
     $this->assertSession()->fieldValueEquals('q', 'litestream');
   }
 
   /**
-   * Reading the KB, including search, requires being logged in.
+   * Reading the wiki, including search, requires being logged in.
    */
   public function testAnonymousIsRefused(): void {
-    $this->drupalGet('/kb/search');
+    $this->drupalGet('/wiki/search');
     $this->assertSession()->statusCodeEquals(403);
   }
 

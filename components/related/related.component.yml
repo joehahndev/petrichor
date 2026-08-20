@@ -1,0 +1,56 @@
+$schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
+name: Related
+status: experimental
+description: 'Grouped lists of other records connected to the one being viewed — tag siblings, decisions that mention it. One component for every entity type, because "what else is about this" is the same question on a task, a memory and a wiki page. Renders nothing when there are no groups: an empty Related box teaches people to stop looking at it.'
+
+props:
+  type: object
+  required:
+    - groups
+  properties:
+    groups:
+      type: array
+      title: Groups
+      description: 'Groups in contribution order, each already ranked and capped by its provider. An empty array renders nothing at all — RelatedSet drops empty groups before they reach here, so a group present here always has rows. This schema is a BC contract from the moment it ships: additive changes only.'
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            title: Group ID
+            description: 'Stable machine name, e.g. "tag_siblings:petrichor_task". Used as a render-array key; never displayed.'
+          label:
+            type: string
+            title: Group heading
+            examples:
+              - 'Tasks with the same tags'
+          items:
+            type: array
+            title: Rows
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  title: Entity ID
+                title:
+                  type: string
+                  title: Label
+                url:
+                  type: ['string', 'null']
+                  title: Destination
+                  description: 'Null renders the title as plain text, for an entity type with no canonical page.'
+                meta:
+                  type: ['string', 'null']
+                  title: Note
+                  description: 'One short fact about why this row is here, e.g. "2 shared tags". Plain text; never markup.'
+          note:
+            type: ['string', 'null']
+            title: Truncation note
+            description: 'e.g. "showing 5 of 12". There is no pager here; the note is the honesty.'
+    title:
+      type: string
+      title: Section heading
+      description: 'The <h2>. The route owns the <h1>, so this never competes with it.'
+      examples:
+        - 'Related'

@@ -6,6 +6,7 @@ namespace Drupal\petrichor\Form;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * Generic add/edit form for Petrichor entities.
@@ -39,6 +40,32 @@ class PetrichorEntityForm extends ContentEntityForm {
 
   /**
    * {@inheritdoc}
+   *
+   * Where to land after a save, for an entity type that may not have a
+   * collection.
+   *
+   * `collection` is the right destination for five of the six entity types in
+   * this suite and is absent on the sixth: petrichor_memory deliberately ships
+   * no collection link template, because omitting it is what leaves
+   * /pm/memories free for the filterable View to claim. This form is shared by
+   * all of them, so asking for a link template that only usually exists turned
+   * every memory save — create, edit, even a status change — into an
+   * UndefinedLinkTemplateException and a white screen.
+   *
+   * Falling back to the entity's own page rather than hard-coding the View's
+   * route: the form is generic and must not learn which entity types happen to
+   * have a View standing in for their collection, and "show me the thing I
+   * just saved" is a defensible destination anywhere.
+   */
+  protected function redirectAfterSave(): Url {
+    $entity = $this->getEntity();
+    return $entity->hasLinkTemplate('collection')
+      ? $entity->toUrl('collection')
+      : $entity->toUrl('canonical');
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function save(array $form, FormStateInterface $form_state): int {
     $result = parent::save($form, $form_state);
@@ -54,7 +81,7 @@ class PetrichorEntityForm extends ContentEntityForm {
         : $this->t('Updated @type %label.', $args)
     );
 
-    $form_state->setRedirectUrl($entity->toUrl('collection'));
+    $form_state->setRedirectUrl($this->redirectAfterSave());
     return $result;
   }
 

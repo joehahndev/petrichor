@@ -2,3 +2,14 @@ services:
   petrichor_tags.resolver:
     class: Drupal\petrichor_tags\TagResolver
     arguments: ['@entity_type.manager']
+
+  petrichor_tags.sibling_provider:
+    class: Drupal\petrichor_tags\TagSiblingProvider
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@petrichor_tags.resolver']
+    tags:
+      # Collected by petrichor.related. This module owns the tags field on
+      # every entity type that has one, so it is the only place that can
+      # answer "what else carries this term" — and when it is uninstalled the
+      # question stops being askable, which is the correct outcome rather than
+      # an empty section on every page.
+      - { name: petrichor.related_provider }

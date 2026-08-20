@@ -7,7 +7,7 @@ namespace Drupal\petrichor_mcp;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
- * Exposes wiki/KB pages as MCP resources (petrichor://wiki/{id}).
+ * Exposes wiki pages as MCP resources (petrichor://wiki/{id}).
  *
  * Degrades to an empty list when the wiki module is absent, per the
  * à-la-carte packaging rule.

@@ -200,7 +200,7 @@ final class DashboardController extends ControllerBase {
     }
     if ($this->entityTypeManager()->hasDefinition('petrichor_wiki_page')) {
       $links[] = [
-        'title' => $this->t('Knowledge base'),
+        'title' => $this->t('Wiki'),
         'description' => $this->t('Notes, decisions and documentation'),
         'url' => Url::fromRoute('entity.petrichor_wiki_page.collection')->toString(),
       ];

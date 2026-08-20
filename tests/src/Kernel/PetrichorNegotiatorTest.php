@@ -50,14 +50,14 @@ class PetrichorNegotiatorTest extends KernelTestBase {
   }
 
   /**
-   * Any entity.petrichor_* route under /pm or /kb is a workspace route.
+   * Any entity.petrichor_* route under /pm or /wiki is a workspace route.
    */
   public function testEntityRoutesAreWorkspaceRoutes(): void {
     $this->assertTrue(PetrichorNegotiator::isWorkspaceRoute(
       $this->routeMatch('entity.petrichor_task.canonical', '/pm/task/{petrichor_task}'),
     ));
     $this->assertTrue(PetrichorNegotiator::isWorkspaceRoute(
-      $this->routeMatch('entity.petrichor_wiki_page.canonical', '/kb/{petrichor_wiki_page}'),
+      $this->routeMatch('entity.petrichor_wiki_page.canonical', '/wiki/{petrichor_wiki_page}'),
     ));
   }
 
@@ -75,7 +75,7 @@ class PetrichorNegotiatorTest extends KernelTestBase {
   }
 
   /**
-   * A petrichor_* route outside /pm or /kb is not a workspace route.
+   * A petrichor_* route outside /pm or /wiki is not a workspace route.
    *
    * The per-entity settings forms (/admin/structure/petrichor/*) are exactly
    * this shape — they must stay in the admin theme.

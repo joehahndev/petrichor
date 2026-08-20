@@ -27,7 +27,7 @@ use Drupal\Core\Database\Query\SelectInterface;
  * only acceptable because it is *visible*: the rows survive the rename, so
  * backlinksFor() still lists every page that pointed at the old title and
  * WikiLinkService logs the count when the rename happens. Nothing breaks
- * silently; the KB gains a to-do.
+ * silently; the wiki gains a to-do.
  *
  * @see \Drupal\petrichor_wiki\WikiLinkService
  */
@@ -190,7 +190,7 @@ final class BacklinkStorage {
   }
 
   /**
-   * Page ids sharing a title, for a KB-health report.
+   * Page ids sharing a title, for a wiki-health report.
    *
    * @return array
    *   list of ['key' => string, 'ids' => int[]].
@@ -338,7 +338,7 @@ final class BacklinkStorage {
   /**
    * Linked-but-unwritten titles, most-linked first.
    *
-   * The best "what should I write next" signal a KB has, and it costs one
+   * The best "what should I write next" signal a wiki has, and it costs one
    * query: a link row with no matching title row is by definition a page
    * somebody wanted and nobody has written.
    *

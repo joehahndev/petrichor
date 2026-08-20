@@ -1,7 +1,7 @@
 $schema: https://git.drupalcode.org/project/drupal/-/raw/HEAD/core/assets/schemas/v1/metadata.schema.json
 name: Wiki tree
 status: experimental
-description: 'A list of links to wiki pages. Nested for the KB index, flat for the backlinks and wanted-page reports — the same node shape covers all three, because all three are "pages you can go to next". Ships no JavaScript: the tree arrives already pruned to the spine, so there is nothing to expand.'
+description: 'A list of links to wiki pages. Nested for the wiki index, flat for the backlinks and wanted-page reports — the same node shape covers all three, because all three are "pages you can go to next". Ships no JavaScript: the tree arrives already pruned to the spine, so there is nothing to expand.'
 
 props:
   type: object
@@ -44,7 +44,7 @@ props:
       title: Accessible name
       description: 'Names the <nav> landmark. Required in practice — a page with three of these needs them told apart.'
       examples:
-        - 'Knowledge base pages'
+        - 'Wiki pages'
     active_id:
       type: ['integer', 'null']
       title: Active page ID

@@ -5,7 +5,7 @@
  * Rewinds petrichor_wiki_page to its pre-revision shape, on demand.
  *
  * The conversion in petrichor_wiki_update_11001() is the only code in the
- * suite that can destroy a knowledge base, and it is unreachable from an
+ * suite that can destroy a wiki, and it is unreachable from an
  * ordinary kernel test: the schema installs from current code, so the entity
  * type is already revisionable before the update's first line runs and there
  * is nothing to convert.
