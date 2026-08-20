@@ -21,8 +21,8 @@ html {
 
 body {
   margin: 0;
-  background-color: var(--petrichor-bg);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-bg);
   font-family: var(--petrichor-font);
   font-size: var(--petrichor-text-base);
   line-height: var(--petrichor-line-height);
@@ -44,15 +44,15 @@ h4,
 h5,
 h6 {
   margin: 0 0 var(--petrichor-space-3);
+  text-wrap: balance;
   color: var(--petrichor-text);
   font-weight: 600;
   line-height: 1.25;
-  text-wrap: balance;
 }
 
 h1 {
-  font-size: var(--petrichor-text-xl);
   letter-spacing: -0.01em;
+  font-size: var(--petrichor-text-xl);
 }
 
 h2 {
@@ -69,10 +69,10 @@ h4,
 h5,
 h6 {
   margin-top: var(--petrichor-space-4);
-  font-size: var(--petrichor-text-sm);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
 }
 
 /* First heading in a flow region should not push the region open. */
@@ -111,8 +111,8 @@ li {
 
 blockquote {
   padding-inline-start: var(--petrichor-space-3);
-  border-inline-start: 2px solid var(--petrichor-border);
   color: var(--petrichor-text-muted);
+  border-inline-start: 2px solid var(--petrichor-border);
 }
 
 hr {
@@ -136,11 +136,11 @@ video {
  * link. The offset keeps the rule off the descenders.
  */
 a {
-  color: var(--petrichor-accent);
+  transition: color var(--petrichor-transition);
   text-decoration: underline;
+  color: var(--petrichor-accent);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
-  transition: color var(--petrichor-transition);
 }
 
 a:hover {
@@ -168,15 +168,15 @@ a:hover {
 .visually-hidden.focusable:focus {
   z-index: 100;
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
-  background-color: var(--petrichor-surface-raised);
   color: var(--petrichor-text);
-  box-shadow: var(--petrichor-shadow-drag);
   border-radius: 0 0 var(--petrichor-radius) 0;
+  background-color: var(--petrichor-surface-raised);
+  box-shadow: var(--petrichor-shadow-drag);
 }
 
 ::selection {
-  background-color: var(--petrichor-accent-soft);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-accent-soft);
 }
 
 /**
@@ -226,25 +226,25 @@ table {
 
 caption {
   margin-block-end: var(--petrichor-space-2);
+  text-align: start;
   color: var(--petrichor-text-muted);
   font-size: var(--petrichor-text-sm);
-  text-align: start;
 }
 
 th {
+  text-align: start;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--petrichor-text-muted);
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-align: start;
-  text-transform: uppercase;
 }
 
 th,
 td {
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
-  border-block-end: 1px solid var(--petrichor-border);
   vertical-align: top;
+  border-block-end: 1px solid var(--petrichor-border);
 }
 
 th:first-child,

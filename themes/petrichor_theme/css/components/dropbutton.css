@@ -17,14 +17,14 @@
 .dropbutton .dropbutton-action > * {
   display: block;
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  white-space: nowrap;
+  text-decoration: none;
   color: var(--petrichor-text);
   font-size: var(--petrichor-text-sm);
-  text-decoration: none;
-  white-space: nowrap;
 }
 .dropbutton .dropbutton-action > a:hover {
-  background-color: var(--petrichor-surface);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-surface);
 }
 .dropbutton .secondary-action {
   border-top: 1px solid var(--petrichor-border);

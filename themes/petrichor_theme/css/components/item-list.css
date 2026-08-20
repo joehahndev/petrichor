@@ -8,11 +8,11 @@
 
 .item-list > h3 {
   margin-bottom: var(--petrichor-space-2);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   color: var(--petrichor-text-muted);
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 .item-list ul {
   margin: 0 0 var(--petrichor-space-3) 0;
@@ -64,22 +64,23 @@
 .petrichor-section-pm .layout-content .item-list > ul > li > a {
   display: flex;
   align-items: center;
-  min-block-size: 3.25rem;
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  transition:
+    background-color var(--petrichor-transition),
+    border-color var(--petrichor-transition),
+    box-shadow var(--petrichor-transition);
+  text-decoration: none;
+  color: var(--petrichor-text);
   border: 1px solid var(--petrichor-border);
   border-radius: var(--petrichor-radius);
   background-color: var(--petrichor-surface);
-  color: var(--petrichor-text);
   font-weight: 600;
-  text-decoration: none;
-  transition: background-color var(--petrichor-transition),
-    border-color var(--petrichor-transition),
-    box-shadow var(--petrichor-transition);
+  min-block-size: 3.25rem;
 }
 
 .petrichor-section-pm .layout-content .item-list > ul > li > a:hover {
+  color: var(--petrichor-text);
   border-color: var(--petrichor-accent);
   background-color: var(--petrichor-surface-raised);
   box-shadow: var(--petrichor-shadow-1);
-  color: var(--petrichor-text);
 }

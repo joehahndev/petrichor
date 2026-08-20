@@ -23,12 +23,12 @@ details > .details-wrapper {
 summary {
   display: flex;
   align-items: center;
-  min-block-size: 2.75rem; /* 44px minimum touch target. */
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  cursor: pointer;
   color: var(--petrichor-text);
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  cursor: pointer;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
 }
 
 summary:hover {

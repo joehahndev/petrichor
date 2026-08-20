@@ -41,11 +41,11 @@
 }
 
 .breadcrumb a {
-  color: var(--petrichor-text-muted);
   text-decoration: none;
+  color: var(--petrichor-text-muted);
 }
 
 .breadcrumb a:hover {
-  color: var(--petrichor-text);
   text-decoration: underline;
+  color: var(--petrichor-text);
 }

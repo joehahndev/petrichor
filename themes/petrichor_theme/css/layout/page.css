@@ -65,11 +65,11 @@
 
 .site-branding__name,
 .site-branding__name a {
+  text-decoration: none;
+  letter-spacing: 0.01em;
   color: var(--petrichor-text);
   font-size: var(--petrichor-text-base);
   font-weight: 600;
-  letter-spacing: 0.01em;
-  text-decoration: none;
 }
 
 .site-branding__slogan {
@@ -111,10 +111,10 @@
 }
 
 .layout-container > footer {
-  padding-block: var(--petrichor-space-4);
-  border-block-start: 1px solid var(--petrichor-border);
   color: var(--petrichor-text-muted);
+  border-block-start: 1px solid var(--petrichor-border);
   font-size: var(--petrichor-text-sm);
+  padding-block: var(--petrichor-space-4);
 }
 
 /**
@@ -130,11 +130,11 @@
 }
 
 .block__title {
-  margin-block: 0 var(--petrichor-space-2);
-  font-size: var(--petrichor-text-sm);
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  margin-block: 0 var(--petrichor-space-2);
 }
 
 .page-title {

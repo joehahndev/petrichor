@@ -37,21 +37,15 @@
  */
 
 :root {
-  /* Tells the UA to render its own chrome — scrollbars, select popups, date
-     pickers, the native part of checkboxes — in the scheme the tokens below
-     switch to. Without it a dark board shows light-grey scrollbars in every
-     column, which column.css reserves a permanent gutter for. */
-  color-scheme: light dark;
-
   /* Colour. */
   --petrichor-bg: #eaece8;
   --petrichor-surface: #f7f8f5;
-  --petrichor-surface-raised: #ffffff;
+  --petrichor-surface-raised: #fff;
   --petrichor-border: #ccd1c9;
   --petrichor-text: #23282a;
   --petrichor-text-muted: #5a615d;
   --petrichor-accent: #2c6a5c;
-  --petrichor-accent-soft: rgba(44, 106, 92, 0.12);
+  --petrichor-accent-soft: rgb(44, 106, 92, 0.12);
   --petrichor-danger: #a32a1c;
   --petrichor-focus: #1d5b4f;
 
@@ -74,16 +68,12 @@
   --petrichor-radius-lg: 12px;
 
   /* Elevation. Two steps only: resting and dragged. */
-  --petrichor-shadow-1: 0 1px 2px rgba(20, 26, 24, 0.06),
-    0 1px 3px rgba(20, 26, 24, 0.05);
-  --petrichor-shadow-drag: 0 6px 16px rgba(20, 26, 24, 0.16),
-    0 2px 4px rgba(20, 26, 24, 0.1);
+  --petrichor-shadow-1: 0 1px 2px rgb(20, 26, 24, 0.06), 0 1px 3px rgb(20, 26, 24, 0.05);
+  --petrichor-shadow-drag: 0 6px 16px rgb(20, 26, 24, 0.16), 0 2px 4px rgb(20, 26, 24, 0.1);
 
   /* Type. System stack only — no build step means no webfonts. */
-  --petrichor-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --petrichor-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --petrichor-font: system-ui, -apple-system, "Segoe UI", roboto, "Helvetica Neue", arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --petrichor-font-mono: ui-monospace, sfmono-regular, "SF Mono", menlo, consolas, "Liberation Mono", monospace;
   --petrichor-text-sm: 0.875rem;
   --petrichor-text-base: 1rem;
   --petrichor-text-lg: 1.125rem;
@@ -116,6 +106,11 @@
    * breathing room. Reclaims roughly 4rem of column per screen.
    */
   --petrichor-board-column-max: max(20rem, calc(100dvh - 18.5rem));
+  /* Tells the UA to render its own chrome — scrollbars, select popups, date
+     pickers, the native part of checkboxes — in the scheme the tokens below
+     switch to. Without it a dark board shows light-grey scrollbars in every
+     column, which column.css reserves a permanent gutter for. */
+  color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -127,20 +122,17 @@
     --petrichor-text: #dde2e0;
     --petrichor-text-muted: #98a29f;
     --petrichor-accent: #74bda9;
-    --petrichor-accent-soft: rgba(116, 189, 169, 0.16);
+    --petrichor-accent-soft: rgb(116, 189, 169, 0.16);
     --petrichor-danger: #f2907d;
     --petrichor-focus: #8fd4c0;
-
     --petrichor-priority-low: #79837f;
     --petrichor-priority-medium: #86aec4;
     --petrichor-priority-high: #d1a75c;
     --petrichor-priority-urgent: #ec8f65;
 
     /* Shadows carry almost no weight on a dark ground; lean on them less. */
-    --petrichor-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --petrichor-shadow-drag: 0 6px 18px rgba(0, 0, 0, 0.55),
-      0 2px 4px rgba(0, 0, 0, 0.4);
-
+    --petrichor-shadow-1: 0 1px 2px rgb(0, 0, 0, 0.4);
+    --petrichor-shadow-drag: 0 6px 18px rgb(0, 0, 0, 0.55), 0 2px 4px rgb(0, 0, 0, 0.4);
     --petrichor-control-border: #777f7d;
   }
 }

@@ -19,22 +19,23 @@ input[type="reset"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-block-size: 2.75rem; /* 44px minimum touch target. */
   margin: 0;
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--petrichor-transition),
+    border-color var(--petrichor-transition);
+  text-align: center;
+  text-decoration: none;
+  color: var(--petrichor-text);
   border: 1px solid var(--petrichor-control-border);
   border-radius: var(--petrichor-radius);
   background-color: var(--petrichor-surface-raised);
-  color: var(--petrichor-text);
   font-family: inherit;
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
   line-height: 1.4;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--petrichor-transition),
-    border-color var(--petrichor-transition);
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
 }
 
 .button:hover,
@@ -43,9 +44,9 @@ input[type="reset"] {
 input[type="submit"]:hover,
 input[type="button"]:hover,
 input[type="reset"]:hover {
+  color: var(--petrichor-text);
   border-color: var(--petrichor-text-muted);
   background-color: var(--petrichor-surface);
-  color: var(--petrichor-text);
 }
 
 /*
@@ -62,30 +63,30 @@ input[type="reset"]:hover {
 
 .button--primary,
 input[type="submit"].button--primary {
-  border-color: var(--petrichor-accent);
-  background-color: var(--petrichor-accent);
   /* --petrichor-bg is near-white in light and near-black in dark, so it is the
      one token that stays readable on the accent in both schemes. */
   color: var(--petrichor-bg);
+  border-color: var(--petrichor-accent);
+  background-color: var(--petrichor-accent);
 }
 
 .button--primary:hover,
 input[type="submit"].button--primary:hover {
+  color: var(--petrichor-bg);
   border-color: var(--petrichor-focus);
   background-color: var(--petrichor-focus);
-  color: var(--petrichor-bg);
 }
 
 .button--danger,
 .button.button--danger {
+  color: var(--petrichor-danger);
   border-color: var(--petrichor-danger);
   background-color: transparent;
-  color: var(--petrichor-danger);
 }
 
 .button--danger:hover {
-  background-color: var(--petrichor-danger);
   color: var(--petrichor-bg);
+  background-color: var(--petrichor-danger);
 }
 
 .button--small {
@@ -100,6 +101,6 @@ input[type="submit"].button--primary:hover {
 .button.is-disabled,
 .form-submit:disabled,
 input[type="submit"]:disabled {
-  opacity: 0.55;
   cursor: not-allowed;
+  opacity: 0.55;
 }

@@ -11,11 +11,11 @@
 }
 
 .field__label {
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--petrichor-text-muted);
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .field--label-inline .field__label,

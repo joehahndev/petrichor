@@ -5,13 +5,13 @@
 
 .pager__items {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--petrichor-space-1);
-  justify-content: center;
   clear: both;
+  flex-wrap: wrap;
+  justify-content: center;
   margin: var(--petrichor-space-5) 0 0;
   padding: 0;
   list-style: none;
+  gap: var(--petrichor-space-1);
 }
 
 .pager__item {
@@ -25,27 +25,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition:
+    background-color var(--petrichor-transition),
+    color var(--petrichor-transition);
+  text-decoration: none;
+  color: var(--petrichor-text-muted);
+  border-radius: var(--petrichor-radius);
+  font-size: var(--petrichor-text-sm);
   min-inline-size: 2.75rem;
   min-block-size: 2.75rem; /* 44px minimum touch target. */
   padding-inline: var(--petrichor-space-2);
-  border-radius: var(--petrichor-radius);
-  color: var(--petrichor-text-muted);
-  font-size: var(--petrichor-text-sm);
   font-variant-numeric: tabular-nums;
-  text-decoration: none;
-  transition: background-color var(--petrichor-transition),
-    color var(--petrichor-transition);
 }
 
 .pager__item a:hover {
-  background-color: var(--petrichor-surface);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-surface);
 }
 
 /* Fill plus weight, so the current page is not signalled by colour alone. */
 .pager__item.is-active a,
 .pager__item.is-active > span {
-  background-color: var(--petrichor-accent-soft);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-accent-soft);
   font-weight: 700;
 }

@@ -8,26 +8,26 @@
 
 button.link {
   display: inline;
-  min-block-size: 0;
   margin: 0;
   padding: 0;
+  cursor: pointer;
+  text-align: inherit;
+  text-decoration: underline;
+  color: var(--petrichor-accent);
   border: 0;
   background: transparent;
-  color: var(--petrichor-accent);
   font-family: inherit;
   font-size: 1em;
   font-weight: inherit;
   line-height: inherit;
-  text-align: inherit;
-  text-decoration: underline;
+  min-block-size: 0;
   text-underline-offset: 0.15em;
-  cursor: pointer;
 }
 
 button.link:hover {
+  color: var(--petrichor-text);
   border: 0;
   background: transparent;
-  color: var(--petrichor-text);
 }
 
 label button.link {

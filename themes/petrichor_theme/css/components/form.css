@@ -101,18 +101,18 @@ label.option {
 .form-textarea,
 input[type="password"] {
   box-sizing: border-box;
-  inline-size: 100%;
-  max-inline-size: 34rem;
-  min-block-size: 2.75rem; /* 44px minimum touch target. */
   padding: var(--petrichor-space-2);
+  transition: border-color var(--petrichor-transition);
+  color: var(--petrichor-text);
   border: 1px solid var(--petrichor-control-border);
   border-radius: var(--petrichor-radius);
   background-color: var(--petrichor-surface-raised);
-  color: var(--petrichor-text);
   font-family: inherit;
   font-size: var(--petrichor-text-base);
   line-height: 1.4;
-  transition: border-color var(--petrichor-transition);
+  inline-size: 100%;
+  max-inline-size: 34rem;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
 }
 
 .form-textarea {

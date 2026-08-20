@@ -14,16 +14,15 @@
  */
 
 .messages {
-  padding: var(--petrichor-space-3) var(--petrichor-space-3)
-    var(--petrichor-space-3) 2.75rem;
+  position: relative;
+  padding: var(--petrichor-space-3) var(--petrichor-space-3) var(--petrichor-space-3) 2.75rem;
+  word-wrap: break-word;
+  color: var(--petrichor-text);
   border: 1px solid var(--petrichor-border);
   border-inline-start: 3px solid var(--petrichor-text-muted);
   border-radius: var(--petrichor-radius);
   background-color: var(--petrichor-surface);
-  color: var(--petrichor-text);
-  word-wrap: break-word;
   overflow-wrap: break-word;
-  position: relative;
 }
 
 /* The icon is masked rather than drawn, so it takes a token colour instead of
@@ -32,13 +31,13 @@
    the status icon was the one part of a message that could not be trusted to
    be visible. One file now serves both schemes. */
 .messages::before {
-  content: "";
   position: absolute;
+  content: "";
+  background-color: var(--petrichor-text-muted);
   inset-block-start: 1.05rem;
   inset-inline-start: var(--petrichor-space-3);
   inline-size: 16px;
   block-size: 16px;
-  background-color: var(--petrichor-text-muted);
   mask-repeat: no-repeat;
   mask-size: 16px 16px;
 }

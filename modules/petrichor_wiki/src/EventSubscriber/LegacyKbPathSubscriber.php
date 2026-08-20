@@ -51,7 +51,14 @@ final class LegacyKbPathSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    $target = self::CURRENT_PREFIX . substr($path, strlen(self::LEGACY_PREFIX));
+    // getPathInfo() is base-path-free, so the replacement has to put the base
+    // back: on a site installed in a subdirectory, a bare "/wiki" points at the
+    // web root and 404s. Empty string on a root install, so this costs nothing
+    // there. drupal.org's own CI serves the docroot from /web and is what
+    // caught this — every environment it was written against ran at the root.
+    $target = $event->getRequest()->getBaseUrl()
+      . self::CURRENT_PREFIX
+      . substr($path, strlen(self::LEGACY_PREFIX));
     // The query string carries ?q= on the search route, so dropping it would
     // turn a bookmarked search into an empty form.
     $query = $event->getRequest()->getQueryString();

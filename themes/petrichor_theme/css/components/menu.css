@@ -62,29 +62,30 @@ ul.menu a.is-active {
 .region-header ul.menu a {
   display: flex;
   align-items: center;
-  min-block-size: 2.75rem; /* 44px minimum touch target. */
-  padding-inline: var(--petrichor-space-2);
-  border-radius: var(--petrichor-radius);
+  transition:
+    background-color var(--petrichor-transition),
+    color var(--petrichor-transition);
+  text-decoration: none;
   color: var(--petrichor-text-muted);
+  border-radius: var(--petrichor-radius);
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  text-decoration: none;
-  transition: background-color var(--petrichor-transition),
-    color var(--petrichor-transition);
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
+  padding-inline: var(--petrichor-space-2);
 }
 
 .region-primary-menu ul.menu a:hover,
 .region-secondary-menu ul.menu a:hover,
 .region-header ul.menu a:hover {
-  background-color: var(--petrichor-surface);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-surface);
 }
 
 .region-primary-menu ul.menu a.is-active,
 .region-secondary-menu ul.menu a.is-active,
 .region-header ul.menu a.is-active {
-  background-color: var(--petrichor-accent-soft);
   color: var(--petrichor-text);
+  background-color: var(--petrichor-accent-soft);
 }
 
 .region-secondary-menu ul.menu a {

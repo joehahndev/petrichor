@@ -14,11 +14,11 @@ nav.tabs {
 ul.tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--petrichor-space-1);
   margin: 0;
   padding: 0;
-  border-block-end: 1px solid var(--petrichor-border);
   list-style: none;
+  border-block-end: 1px solid var(--petrichor-border);
+  gap: var(--petrichor-space-1);
 }
 
 .tabs > li {
@@ -29,24 +29,25 @@ ul.tabs {
   display: block;
   /* 44px minimum touch target, achieved with padding so the text stays put. */
   padding: var(--petrichor-space-2) var(--petrichor-space-3);
-  min-block-size: 2.75rem;
-  border-block-end: 2px solid transparent;
+  transition:
+    color var(--petrichor-transition),
+    border-color var(--petrichor-transition);
+  text-decoration: none;
   color: var(--petrichor-text-muted);
+  border-block-end: 2px solid transparent;
   font-size: var(--petrichor-text-sm);
   font-weight: 600;
-  text-decoration: none;
-  transition: color var(--petrichor-transition),
-    border-color var(--petrichor-transition);
+  min-block-size: 2.75rem;
 }
 
 .tabs a:hover {
-  border-block-end-color: var(--petrichor-border);
   color: var(--petrichor-text);
+  border-block-end-color: var(--petrichor-border);
 }
 
 /* Weight and colour change alongside the rule, so the active tab is not
    identified by a coloured line alone. */
 .tabs a.is-active {
-  border-block-end-color: var(--petrichor-accent);
   color: var(--petrichor-text);
+  border-block-end-color: var(--petrichor-accent);
 }
