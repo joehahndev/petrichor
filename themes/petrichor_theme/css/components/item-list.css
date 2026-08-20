@@ -1,0 +1,85 @@
+/**
+ * @file
+ * Visual styles for item list.
+ *
+ * The /pm dashboard is an item_list of links to each entity collection, so this
+ * is a primary surface right now even though the generic case is prose.
+ */
+
+.item-list > h3 {
+  margin-bottom: var(--petrichor-space-2);
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.item-list ul {
+  margin: 0 0 var(--petrichor-space-3) 0;
+  padding: 0;
+}
+.item-list li {
+  margin: 0 0 var(--petrichor-space-1) var(--petrichor-space-4); /* LTR */
+  padding: 0;
+}
+[dir="rtl"] .item-list li {
+  margin: 0 var(--petrichor-space-4) var(--petrichor-space-1) 0;
+}
+
+/**
+ * Comma separated lists.
+ */
+.item-list--comma-list {
+  display: inline;
+}
+.item-list--comma-list .item-list__comma-list,
+.item-list__comma-list li,
+[dir="rtl"] .item-list--comma-list .item-list__comma-list,
+[dir="rtl"] .item-list__comma-list li {
+  margin: 0;
+}
+
+/**
+ * Dashboard workspace list (/pm).
+ *
+ * Scoped to the path class rather than restyling every item_list on the site:
+ * the same theme renders wiki prose, where a bulleted list has to stay a
+ * bulleted list. Cards here give each destination a 44px target and stop the
+ * dashboard reading as an unstyled <ul>.
+ */
+.petrichor-section-pm .layout-content .item-list > ul {
+  display: grid;
+  gap: var(--petrichor-space-2);
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.petrichor-section-pm .layout-content .item-list > ul > li {
+  margin: 0;
+  list-style: none;
+}
+
+.petrichor-section-pm .layout-content .item-list > ul > li > a {
+  display: flex;
+  align-items: center;
+  min-block-size: 3.25rem;
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  border: 1px solid var(--petrichor-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--petrichor-transition),
+    border-color var(--petrichor-transition),
+    box-shadow var(--petrichor-transition);
+}
+
+.petrichor-section-pm .layout-content .item-list > ul > li > a:hover {
+  border-color: var(--petrichor-accent);
+  background-color: var(--petrichor-surface-raised);
+  box-shadow: var(--petrichor-shadow-1);
+  color: var(--petrichor-text);
+}

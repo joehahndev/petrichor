@@ -1,0 +1,162 @@
+/**
+ * @file
+ * The page shell.
+ *
+ * Matches the regions in templates/layout/page.html.twig. The whole point of
+ * this theme is that the workspace is the page: chrome is a single quiet strip
+ * at the top, everything else is content.
+ */
+
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+  min-block-size: 100dvh;
+  max-inline-size: var(--petrichor-shell-max);
+  margin-inline: auto;
+  padding-inline: var(--petrichor-space-3);
+}
+
+/*
+ * The board is a horizontally scrolling grid of columns; a 62rem prose measure
+ * would strangle it. Keyed on `petrichor-section-pm`, which PetrichorThemeHooks
+ * derives from the ROUTE — not on core's `path-*`, which is derived from the
+ * URI and vanishes on the front page. A recipe pointing the front page at /pm
+ * is exactly what the workspace-theme setting anticipates.
+ */
+.petrichor-section-pm .layout-container {
+  max-inline-size: 96rem;
+}
+
+/**
+ * Header strip: branding on the left, primary navigation on the right, one
+ * hairline underneath. No background fill — a coloured bar would be the loudest
+ * thing on the page and it carries no information.
+ */
+.layout-container > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petrichor-space-2) var(--petrichor-space-4);
+  padding-block: var(--petrichor-space-3);
+}
+
+.layout-container > header:not(:empty),
+.region-primary-menu:not(:empty) {
+  border-block-end: 1px solid var(--petrichor-border);
+}
+
+/* When both regions are filled the header owns the rule, not the menu. */
+.layout-container > header:not(:empty) + .region-primary-menu {
+  border-block-end: 0;
+}
+
+.region-header {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petrichor-space-2) var(--petrichor-space-4);
+}
+
+.region-primary-menu {
+  padding-block: var(--petrichor-space-2);
+}
+
+.site-branding__name,
+.site-branding__name a {
+  color: var(--petrichor-text);
+  font-size: var(--petrichor-text-base);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.site-branding__slogan {
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+}
+
+.site-branding__logo img {
+  display: block;
+  block-size: 1.75rem;
+  inline-size: auto;
+}
+
+/**
+ * Breadcrumb and help sit between the header and the work. They are kept in the
+ * document (removing them would cost orientation and a11y tree entries) but
+ * deliberately demoted to the smallest, quietest thing on the page.
+ */
+.region-breadcrumb {
+  padding-block-start: var(--petrichor-space-2);
+}
+
+.region-highlighted:not(:empty) {
+  margin-block-start: var(--petrichor-space-3);
+}
+
+/**
+ * Main. This theme declares six regions and no sidebars — the board and Today
+ * view are the layout, not content beside a rail.
+ */
+.layout-container > main {
+  display: block;
+  flex: 1 0 auto;
+  padding-block: var(--petrichor-space-4) var(--petrichor-space-6);
+}
+
+.layout-content {
+  min-inline-size: 0;
+}
+
+.layout-container > footer {
+  padding-block: var(--petrichor-space-4);
+  border-block-start: 1px solid var(--petrichor-border);
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+}
+
+/**
+ * Blocks and page title.
+ */
+.block + .block {
+  margin-block-start: var(--petrichor-space-4);
+}
+
+.region-header .block + .block,
+.region-primary-menu .block + .block {
+  margin-block-start: 0;
+}
+
+.block__title {
+  margin-block: 0 var(--petrichor-space-2);
+  font-size: var(--petrichor-text-sm);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--petrichor-text-muted);
+}
+
+.page-title {
+  margin-block-end: var(--petrichor-space-4);
+}
+
+/**
+ * Contextual links.
+ *
+ * Belt and braces. The render-side suppression lives in the theme's hook
+ * implementation; this rule is the CSS half of the same decision, because the
+ * contextual pencil positions itself over content and binds hover handlers that
+ * compete with SortableJS for pointer events on a card. If the render-side
+ * suppression lands first this is inert, which is the point — it must never be
+ * the only thing standing between the overlay and a dropped card.
+ */
+.contextual,
+.contextual-links {
+  display: none !important;
+}
+
+.contextual-region {
+  /* Core sets position:relative here purely to anchor the pencil. */
+  position: static;
+}

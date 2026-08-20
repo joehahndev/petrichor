@@ -1,0 +1,68 @@
+/**
+ * @file
+ * Theme styling for user module.
+ */
+
+/* Visual styling for the Password strength indicator */
+.password-strength__meter {
+  margin-top: 0.5em;
+  background-color: var(--petrichor-surface);
+}
+.password-strength__indicator {
+  /* Token, not a literal duration: it resolves to 0s under reduced motion,
+     which a hardcoded 0.5s would have ignored. */
+  transition: width var(--petrichor-transition);
+  background-color: var(--petrichor-accent);
+}
+.password-strength__indicator.is-weak {
+  background-color: var(--petrichor-danger);
+}
+.password-strength__indicator.is-fair {
+  background-color: var(--petrichor-accent);
+}
+.password-strength__indicator.is-good {
+  background-color: var(--petrichor-accent);
+}
+.password-strength__indicator.is-strong {
+  background-color: var(--petrichor-accent);
+}
+
+.password-confirm,
+.password-field,
+.password-strength,
+.password-confirm-match,
+.password-confirm-message {
+  width: 55%;
+}
+
+.password-suggestions {
+  max-width: 34.7em;
+  margin: 0.7em 0;
+  padding: 0.2em 0.5em;
+  border: 1px solid var(--petrichor-control-border);
+}
+.password-suggestions ul {
+  margin-bottom: 0;
+}
+
+.confirm-parent,
+.password-parent {
+  clear: left; /* LTR */
+  overflow: hidden;
+  max-width: 33em;
+  margin: 0;
+}
+[dir="rtl"] .confirm-parent,
+[dir="rtl"] .password-parent {
+  clear: right;
+}
+
+/* Styling for the status indicator of the passwords match test.  */
+.password-confirm .ok {
+  color: var(--petrichor-accent);
+  font-weight: bold;
+}
+.password-confirm .error {
+  color: var(--petrichor-danger);
+  font-weight: bold;
+}

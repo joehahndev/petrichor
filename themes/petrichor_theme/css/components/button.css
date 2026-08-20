@@ -1,0 +1,105 @@
+/**
+ * @file
+ * Visual styles for buttons.
+ *
+ * Three levels only: default (outlined), primary (filled, one per form) and
+ * danger. More variants would mean more decisions per screen, which is exactly
+ * what this workspace is trying not to hand the user.
+ */
+
+.button,
+.image-button,
+.form-submit,
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  /* Flex, not inline-block: min-block-size makes the box 44px but leaves the
+     label sitting at the top of it, so the button looks mis-set whenever the
+     text is shorter than the minimum. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
+  margin: 0;
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  border: 1px solid var(--petrichor-control-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface-raised);
+  color: var(--petrichor-text);
+  font-family: inherit;
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--petrichor-transition),
+    border-color var(--petrichor-transition);
+}
+
+.button:hover,
+.image-button:hover,
+.form-submit:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover {
+  border-color: var(--petrichor-text-muted);
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+}
+
+/*
+ * The generated rule put 1em on both sides of every button and stripped it from
+ * the first child, which left form actions misaligned with the fields above
+ * them. Gap on the container, nothing on the buttons.
+ */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petrichor-space-2);
+  align-items: center;
+}
+
+.button--primary,
+input[type="submit"].button--primary {
+  border-color: var(--petrichor-accent);
+  background-color: var(--petrichor-accent);
+  /* --petrichor-bg is near-white in light and near-black in dark, so it is the
+     one token that stays readable on the accent in both schemes. */
+  color: var(--petrichor-bg);
+}
+
+.button--primary:hover,
+input[type="submit"].button--primary:hover {
+  border-color: var(--petrichor-focus);
+  background-color: var(--petrichor-focus);
+  color: var(--petrichor-bg);
+}
+
+.button--danger,
+.button.button--danger {
+  border-color: var(--petrichor-danger);
+  background-color: transparent;
+  color: var(--petrichor-danger);
+}
+
+.button--danger:hover {
+  background-color: var(--petrichor-danger);
+  color: var(--petrichor-bg);
+}
+
+.button--small {
+  /* 44px like every other control. "Small" means less padding and a smaller
+     label, never a smaller target — the theme states 44px as its bar and a
+     36px exception would only apply to the controls nobody notices missing. */
+  min-block-size: 2.75rem;
+  padding: var(--petrichor-space-1) var(--petrichor-space-2);
+}
+
+.button:disabled,
+.button.is-disabled,
+.form-submit:disabled,
+input[type="submit"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

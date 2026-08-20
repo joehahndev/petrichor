@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  theme:
+    - petrichor_theme
+id: petrichor_theme_local_tasks
+theme: petrichor_theme
+region: highlighted
+weight: -5
+provider: null
+plugin: local_tasks_block
+# One block for both levels rather than core's usual two. Secondary tabs are
+# rare here and a second block is a second thing to place, style and reason
+# about; menu-local-tasks.html.twig already renders the two lists separately.
+settings:
+  id: local_tasks_block
+  label: Tabs
+  label_display: '0'
+  provider: core
+  primary: true
+  secondary: true
+visibility: {  }

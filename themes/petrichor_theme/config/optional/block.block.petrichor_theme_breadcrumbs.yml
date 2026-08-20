@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - petrichor_theme
+id: petrichor_theme_breadcrumbs
+theme: petrichor_theme
+region: breadcrumb
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: Breadcrumbs
+  label_display: '0'
+  provider: system
+# No visibility condition here on purpose. Workspace routes drop the whole
+# breadcrumb region in page.html.twig, which keeps the rule in one place and
+# expressed as "this theme does not show trails on the board" rather than as a
+# path pattern that has to be kept in step with the router.
+visibility: {  }

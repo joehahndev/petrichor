@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.main
+  module:
+    - system
+  theme:
+    - petrichor_theme
+id: petrichor_theme_main_menu
+theme: petrichor_theme
+region: primary_menu
+weight: 0
+provider: null
+plugin: 'system_menu_block:main'
+settings:
+  id: 'system_menu_block:main'
+  label: 'Main navigation'
+  label_display: '0'
+  provider: system
+  # One level, no expansion. A workspace navigation that unfolds is a menu you
+  # have to read; this one is meant to be recognised in peripheral vision.
+  level: 1
+  depth: 1
+  expand_all_items: false
+visibility: {  }

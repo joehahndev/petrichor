@@ -1,0 +1,92 @@
+/**
+ * @file
+ * Visual styles for menu.
+ *
+ * Nested menus keep the generated markers; the site's own navigation regions
+ * drop them and become a plain horizontal row of 44px targets.
+ */
+
+ul.menu {
+  margin-left: 1em; /* LTR */
+  padding: 0;
+  list-style: none outside;
+  text-align: left; /* LTR */
+}
+[dir="rtl"] ul.menu {
+  margin-right: 1em;
+  margin-left: 0;
+  text-align: right;
+}
+.menu-item--expanded {
+  list-style-type: circle;
+  list-style-image: url(../../images/icons/menu-expanded.png);
+}
+.menu-item--collapsed {
+  list-style-type: disc;
+  list-style-image: url(../../images/icons/menu-collapsed.png); /* LTR */
+}
+[dir="rtl"] .menu-item--collapsed {
+  list-style-image: url(../../images/icons/menu-collapsed-rtl.png);
+}
+.menu-item {
+  margin: 0;
+  padding-top: 0.2em;
+}
+ul.menu a.is-active {
+  color: var(--petrichor-text);
+  font-weight: 600;
+}
+
+/**
+ * Primary and secondary navigation.
+ */
+.region-primary-menu ul.menu,
+.region-secondary-menu ul.menu,
+.region-header ul.menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petrichor-space-1);
+  margin: 0;
+  padding: 0;
+}
+
+.region-primary-menu .menu-item,
+.region-secondary-menu .menu-item,
+.region-header .menu-item {
+  padding-top: 0;
+  list-style: none;
+}
+
+.region-primary-menu ul.menu a,
+.region-secondary-menu ul.menu a,
+.region-header ul.menu a {
+  display: flex;
+  align-items: center;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
+  padding-inline: var(--petrichor-space-2);
+  border-radius: var(--petrichor-radius);
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--petrichor-transition),
+    color var(--petrichor-transition);
+}
+
+.region-primary-menu ul.menu a:hover,
+.region-secondary-menu ul.menu a:hover,
+.region-header ul.menu a:hover {
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+}
+
+.region-primary-menu ul.menu a.is-active,
+.region-secondary-menu ul.menu a.is-active,
+.region-header ul.menu a.is-active {
+  background-color: var(--petrichor-accent-soft);
+  color: var(--petrichor-text);
+}
+
+.region-secondary-menu ul.menu a {
+  font-weight: 400;
+}

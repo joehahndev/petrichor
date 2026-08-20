@@ -1,0 +1,61 @@
+{#
+/**
+ * @file
+ * Theme override to display a single Drupal page while offline.
+ *
+ * All available variables are mirrored in page.html.twig.
+ * Some may be blank but they are provided for consistency.
+ *
+ * Trimmed from the generated version in two ways:
+ * - The sidebar branches are gone. This theme declares no sidebar regions, so
+ *   `page.sidebar_first` is always undefined and the markup was unreachable.
+ * - The site name is no longer an <h1>. It used to be, alongside a second <h1>
+ *   for the page title a few lines below — two top-level headings on the same
+ *   document. The maintenance page is the one screen a user hits when nothing
+ *   else works; it should not also be the one that fails a heading-order check.
+ *
+ * Class names match block--system-branding-block.html.twig so the header reads
+ * the same offline as online, without the block system being available.
+ *
+ * @see \Drupal\Core\Theme\ThemePreprocess::preprocessMaintenancePage()
+ */
+#}
+<div class="layout-container">
+
+  <header>
+    {% if logo %}
+      <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="site-branding__logo">
+        <img src="{{ logo }}" alt="{{ 'Home'|t }}"/>
+      </a>
+    {% endif %}
+
+    {% if site_name %}
+      <div class="site-branding__name">
+        <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home">{{ site_name }}</a>
+      </div>
+    {% endif %}
+
+    {% if site_slogan %}
+      <div class="site-branding__slogan">{{ site_slogan }}</div>
+    {% endif %}
+  </header>
+
+  <main>
+    {% if title %}
+      <h1 class="page-title">{{ title }}</h1>
+    {% endif %}
+
+    {{ page.highlighted }}
+
+    <div class="layout-content">
+      {{ page.content }}
+    </div>{# /.layout-content #}
+  </main>
+
+  {% if page.footer %}
+    <footer>
+      {{ page.footer }}
+    </footer>
+  {% endif %}
+
+</div>{# /.layout-container #}

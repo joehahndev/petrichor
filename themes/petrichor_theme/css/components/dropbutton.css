@@ -1,0 +1,45 @@
+/**
+ * @file
+ * General styles for dropbuttons.
+ *
+ * Entity collections put the Edit/Delete operations in a dropbutton, so this
+ * shows up on every list page in the workspace.
+ */
+
+.js .dropbutton-widget {
+  border: 1px solid var(--petrichor-control-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface-raised);
+}
+.js .dropbutton-widget:hover {
+  border-color: var(--petrichor-text-muted);
+}
+.dropbutton .dropbutton-action > * {
+  display: block;
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  color: var(--petrichor-text);
+  font-size: var(--petrichor-text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dropbutton .dropbutton-action > a:hover {
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+}
+.dropbutton .secondary-action {
+  border-top: 1px solid var(--petrichor-border);
+}
+.dropbutton-multiple .dropbutton {
+  border-right: 1px solid var(--petrichor-border); /* LTR */
+}
+[dir="rtl"] .dropbutton-multiple .dropbutton {
+  border-right: 0 none;
+  border-left: 1px solid var(--petrichor-border);
+}
+.dropbutton-multiple .dropbutton .dropbutton-action > * {
+  margin-right: 0.25em; /* LTR */
+}
+[dir="rtl"] .dropbutton-multiple .dropbutton .dropbutton-action > * {
+  margin-right: 0;
+  margin-left: 0.25em;
+}

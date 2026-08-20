@@ -1,0 +1,51 @@
+/**
+ * @file
+ * Styles for breadcrumbs.
+ *
+ * Kept in the document — removing it would cost orientation and an a11y tree
+ * entry — but demoted to the quietest text on the page. On a board it is
+ * navigation history, not content, and it should never compete with the
+ * columns for attention.
+ */
+
+.breadcrumb {
+  padding-bottom: 0;
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+}
+
+.breadcrumb ol {
+  margin: 0;
+  padding: 0;
+}
+
+[dir="rtl"] .breadcrumb ol {
+  /* This is required to win over specificity of [dir="rtl"] ol */
+  margin-right: 0;
+}
+
+.breadcrumb li {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.breadcrumb li::before {
+  content: " \BB ";
+  color: var(--petrichor-border);
+}
+
+.breadcrumb li:first-child::before {
+  content: none;
+}
+
+.breadcrumb a {
+  color: var(--petrichor-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--petrichor-text);
+  text-decoration: underline;
+}

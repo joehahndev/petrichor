@@ -1,0 +1,28 @@
+{% extends "block.html.twig" %}
+{#
+/**
+ * @file
+ * Theme override for tabs (local tasks).
+ *
+ * The tabs stay. They are how you get from a task to its edit form, and on
+ * /pm/* entity routes they are the only way. What changes on a workspace route
+ * is how loud they are, and that is CSS's call off the `petrichor-workspace`
+ * body class — never `display: none`, which would take a working navigation out
+ * of the tab order along with it.
+ *
+ * The block config places this in the `highlighted` region, above the content
+ * and below the header, so tabs never sit between the page title and the work.
+ *
+ * `tabs` also lands on the <ul> in menu-local-tasks.html.twig; that is the
+ * element the theme's tabs.css draws the rule under. The class here is what
+ * gives the <nav> its own hook, and the aria-label is what distinguishes this
+ * landmark from the site navigation for a screen reader.
+ */
+#}
+{% block content %}
+  {% if content %}
+    <nav class="tabs" aria-label="{{ 'Tabs'|t }}">
+      {{ content }}
+    </nav>
+  {% endif %}
+{% endblock %}

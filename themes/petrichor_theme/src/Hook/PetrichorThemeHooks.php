@@ -1,0 +1,189 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\petrichor_theme\Hook;
+
+use Drupal\Core\Hook\Attribute\Hook;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Hook implementations for petrichor_theme.
+ *
+ * All of the theme's PHP lives here rather than in a petrichor_theme.theme
+ * file. Starterkit generated this class, core registers it as an autowired
+ * service, and one hook home beats two — a procedural .theme alongside it
+ * would only make "where does the contextual suppression live?" a question.
+ */
+class PetrichorThemeHooks {
+
+  /**
+   * Route path prefixes that are workspace rather than CMS, by section name.
+   *
+   * Matched against the *route* path ('/pm/board/{petrichor_project}'), never
+   * the request URI. The generated body classes in html.html.twig derive from
+   * `root_path`, which is empty on the front page — so the moment a recipe sets
+   * /pm as the front page, `path-pm` disappears and any CSS hanging off it
+   * silently stops applying. The route path does not move.
+   */
+  protected const WORKSPACE_SECTIONS = [
+    'pm' => '/pm',
+    'wiki' => '/wiki',
+  ];
+
+  public function __construct(
+    protected readonly RouteMatchInterface $routeMatch,
+  ) {}
+
+  /**
+   * Implements hook_preprocess_html().
+   *
+   * Adds the body classes that let CSS tell a workspace screen from an ordinary
+   * page. This is the mechanism for "the board is the page": the theme's chrome
+   * is identical everywhere, and `petrichor-workspace` is what CSS keys off to
+   * quiet the parts of it (page title, local task tabs) that are orientation on
+   * a content page and noise on a board.
+   */
+  #[Hook('preprocess_html')]
+  public function preprocessHtml(array &$variables): void {
+    $section = $this->workspaceSection();
+    if ($section === NULL) {
+      return;
+    }
+    $variables['attributes']['class'][] = 'petrichor-workspace';
+    $variables['attributes']['class'][] = 'petrichor-section-' . $section;
+  }
+
+  /**
+   * Implements hook_preprocess_page().
+   *
+   * `is_workspace` is what page.html.twig uses to drop the breadcrumb region.
+   * Breadcrumbs are suppressed structurally rather than with CSS because a
+   * breadcrumb is a navigation landmark with tab stops in it: hiding it
+   * visually leaves it in the accessibility tree and in the tab order,
+   * announcing a trail to a screen reader user that a sighted user cannot see.
+   *
+   * The page title is the opposite case and is handled the opposite way — see
+   * page-title.html.twig.
+   */
+  #[Hook('preprocess_page')]
+  public function preprocessPage(array &$variables): void {
+    $variables['is_workspace'] = $this->workspaceSection() !== NULL;
+  }
+
+  /**
+   * Implements hook_preprocess().
+   *
+   * Suppresses contextual links for everything this theme renders.
+   *
+   * WHY, because this looks like gratuitous removal of a core feature: the
+   * contextual pencil is absolutely positioned over the top-right corner of any
+   * element carrying `contextual-region`, and contextual.js binds mouseenter /
+   * mouseleave / focus handlers to that region. On the kanban board the region
+   * is the main content block — i.e. the entire drag surface — so the overlay
+   * sits on top of cards and its handlers compete with SortableJS for the same
+   * pointer events. Out-specificity-ing it in CSS does not remove the handlers.
+   * Owning the whole theme means we can stop it being rendered at all, which is
+   * the reason this is a Starterkit theme rather than a sub-theme.
+   *
+   * Two halves, and both are needed:
+   * 1. Here — drop the placeholder element that contextual's own
+   *    hook_preprocess() put in `title_suffix`. The ordering works because
+   *    contextual's is a *global* preprocess, which Registry invokes before the
+   *    per-hook module and theme callbacks: by the time a theme's generic
+   *    preprocess runs, the placeholder is there to remove.
+   * 2. pageAttachmentsAlter() below — drop the library, so the JS never loads.
+   *
+   * This is unconditional. Editing happens in the admin theme; the workspace
+   * theme is for working, and a half-suppressed overlay is worse than either
+   * extreme. petrichor_board guards its own routes independently, so the board
+   * is still safe in a host theme that has contextual links switched on.
+   *
+   * Kept cheap on purpose: a theme's generic preprocess is appended to every
+   * theme hook's preprocess list, so this runs once per rendered element.
+   *
+   * @see \Drupal\contextual\Hook\ContextualThemeHooks::preprocess()
+   */
+  #[Hook('preprocess')]
+  public function preprocess(
+    array &$variables,
+    string $hook,
+    array $info,
+  ): void {
+    if (!isset($variables['title_suffix']['contextual_links'])) {
+      return;
+    }
+    unset($variables['title_suffix']['contextual_links']);
+
+    // The marker class is inert once the placeholder and the JS are gone, but
+    // core styles `.contextual-region { position: relative }` purely to anchor
+    // the pencil, and leaving that on a drag container is a stacking context
+    // nobody asked for. Guarded on the array type rather than assumed: most
+    // hooks still hold `attributes` as a plain array at preprocess time —
+    // ThemeManager casts it to an Attribute afterwards — but a few arrive
+    // already cast, and there is nothing here worth an exception over.
+    $attributes = $variables['attributes'] ?? NULL;
+    if (is_array($attributes) && is_array($attributes['class'] ?? NULL)) {
+      $variables['attributes']['class'] = array_values(
+        array_diff($attributes['class'], ['contextual-region'])
+      );
+    }
+  }
+
+  /**
+   * Implements hook_page_attachments_alter().
+   *
+   * The other half of the contextual-link suppression above: without the
+   * library there are no mouse handlers and no AJAX round trip to
+   * /contextual/render, whatever markup survives.
+   *
+   * Themes may implement this hook — HtmlRenderer::invokePageAttachmentHooks()
+   * calls the theme manager's alter after the module handler's. Only #attached
+   * and #cache may be present when we are done, or core throws.
+   */
+  #[Hook('page_attachments_alter')]
+  public function pageAttachmentsAlter(array &$attachments): void {
+    if (empty($attachments['#attached']['library'])) {
+      return;
+    }
+    $attachments['#attached']['library'] = array_values(array_diff(
+      $attachments['#attached']['library'],
+      [
+        'contextual/drupal.contextual-links',
+        'contextual/drupal.contextual-toolbar',
+      ],
+    ));
+  }
+
+  /**
+   * Implements hook_preprocess_image_widget().
+   */
+  #[Hook('preprocess_image_widget')]
+  public function preprocessImageWidget(array &$variables): void {
+    $data = &$variables['data'];
+    // This prevents image widget templates from rendering preview container
+    // HTML to users that do not have permission to access these previews.
+    // @todo revisit in https://drupal.org/node/953034
+    // @todo revisit in https://drupal.org/node/3114318
+    if (isset($data['preview']['#access']) && $data['preview']['#access'] === FALSE) {
+      unset($data['preview']);
+    }
+  }
+
+  /**
+   * Resolves the current route to a workspace section.
+   *
+   * @return string|null
+   *   'pm', 'wiki', or NULL when this is an ordinary page.
+   */
+  protected function workspaceSection(): ?string {
+    $path = $this->routeMatch->getRouteObject()?->getPath() ?? '';
+    foreach (self::WORKSPACE_SECTIONS as $section => $prefix) {
+      if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+        return $section;
+      }
+    }
+    return NULL;
+  }
+
+}

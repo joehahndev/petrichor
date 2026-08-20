@@ -1,0 +1,152 @@
+/**
+ * @file
+ * The Petrichor design token contract.
+ *
+ * These custom properties are the single source of truth for colour, space,
+ * type and motion across the theme AND the petrichor_* modules. The theme is
+ * optional, so module CSS always writes `var(--petrichor-surface, #fff)` with a
+ * fallback; this file is the only place the real values are declared.
+ *
+ * Palette rules that the values below encode, and that any future edit has to
+ * keep:
+ * - No pure white page background and no pure black text. Both are fatiguing
+ *   over a full working day, which is the actual usage pattern here.
+ * - One accent (a desaturated conifer green), used for links, the focus ring
+ *   and drop targets. Nothing else gets to be colourful.
+ * - Red (--petrichor-danger) means overdue. It is never decoration.
+ * - The priority ramp is an intensity ramp, not a rainbow: cool and quiet at
+ *   low, warm and dense at urgent. Priority is also printed as a word on the
+ *   card, so colour is never the sole signal.
+ *
+ * Verified contrast (WCAG 2.1 — 1.4.3 text, 1.4.11 non-text), light / dark:
+ * - text on bg / surface / raised     12.54 13.99 14.91 / 13.73 12.11 10.66
+ * - text-muted on bg / surface         5.35  5.96        /  6.86  6.05
+ * - accent (link) on bg / surface      5.31  5.93        /  8.22  7.25
+ * - danger on bg / surface             6.08  6.78        /  7.76  6.85
+ * - focus ring on bg / surface         6.64  7.40        / 10.58  9.33
+ * - control-border on surface / raised 3.87  4.12        /  3.87  3.40
+ * - priority-low on surface (weakest)  4.08               /  4.05
+ * - primary button label on accent     5.31               /  8.22
+ *
+ * --petrichor-border is deliberately BELOW 3:1 (1.46 light / 1.43 dark). It is
+ * the decorative hairline the contract names it, drawn between two surfaces
+ * that are already separated by fill and spacing, and pushing it to 3:1 would
+ * put a hard grey box around every card on the board. The boundaries WCAG
+ * 1.4.11 actually governs — inputs, selects, textareas, buttons, dropbuttons —
+ * use --petrichor-control-border instead, which clears 3:1 on every surface.
+ */
+
+:root {
+  /* Tells the UA to render its own chrome — scrollbars, select popups, date
+     pickers, the native part of checkboxes — in the scheme the tokens below
+     switch to. Without it a dark board shows light-grey scrollbars in every
+     column, which column.css reserves a permanent gutter for. */
+  color-scheme: light dark;
+
+  /* Colour. */
+  --petrichor-bg: #eaece8;
+  --petrichor-surface: #f7f8f5;
+  --petrichor-surface-raised: #ffffff;
+  --petrichor-border: #ccd1c9;
+  --petrichor-text: #23282a;
+  --petrichor-text-muted: #5a615d;
+  --petrichor-accent: #2c6a5c;
+  --petrichor-accent-soft: rgba(44, 106, 92, 0.12);
+  --petrichor-danger: #a32a1c;
+  --petrichor-focus: #1d5b4f;
+
+  /* Priority accents. Left border on cards; never the only signal. */
+  --petrichor-priority-low: #6f7c78;
+  --petrichor-priority-medium: #4a7387;
+  --petrichor-priority-high: #8a6410;
+  --petrichor-priority-urgent: #a34a1e;
+
+  /* Space scale, rem. */
+  --petrichor-space-1: 0.25rem;
+  --petrichor-space-2: 0.5rem;
+  --petrichor-space-3: 1rem;
+  --petrichor-space-4: 1.5rem;
+  --petrichor-space-5: 2rem;
+  --petrichor-space-6: 3rem;
+
+  /* Radius. */
+  --petrichor-radius: 6px;
+  --petrichor-radius-lg: 12px;
+
+  /* Elevation. Two steps only: resting and dragged. */
+  --petrichor-shadow-1: 0 1px 2px rgba(20, 26, 24, 0.06),
+    0 1px 3px rgba(20, 26, 24, 0.05);
+  --petrichor-shadow-drag: 0 6px 16px rgba(20, 26, 24, 0.16),
+    0 2px 4px rgba(20, 26, 24, 0.1);
+
+  /* Type. System stack only — no build step means no webfonts. */
+  --petrichor-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --petrichor-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --petrichor-text-sm: 0.875rem;
+  --petrichor-text-base: 1rem;
+  --petrichor-text-lg: 1.125rem;
+  --petrichor-text-xl: 1.375rem;
+
+  /*
+   * Motion. The token carries duration AND easing so it drops straight into a
+   * shorthand: `transition: color var(--petrichor-transition)`. The
+   * reduced-motion override below resolves it to a bare `0s`, which is still
+   * valid in that position.
+   */
+  --petrichor-transition: 150ms ease;
+
+  /*
+   * Theme-internal, NOT part of the module contract. Modules must not depend on
+   * these; they exist so the theme can keep hairlines quiet while still giving
+   * real controls a 3:1 boundary.
+   */
+  --petrichor-control-border: #767f7b;
+  --petrichor-measure: 68ch;
+  --petrichor-shell-max: 62rem;
+  --petrichor-line-height: 1.6;
+
+  /*
+   * The board's column height cap. column.css falls back to a conservative
+   * `100dvh - 14rem` because it cannot know what chrome sits above it; this
+   * theme does, so it can hand back a real number: header (~4.5rem incl.
+   * padding and menu) + breadcrumb (~2rem) + page title and project heading
+   * (~7rem) + main's padding-block (space-4 + space-6 = 5rem) + footer
+   * breathing room. Reclaims roughly 4rem of column per screen.
+   */
+  --petrichor-board-column-max: max(20rem, calc(100dvh - 18.5rem));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --petrichor-bg: #14171a;
+    --petrichor-surface: #1e2326;
+    --petrichor-surface-raised: #272d30;
+    --petrichor-border: #363d40;
+    --petrichor-text: #dde2e0;
+    --petrichor-text-muted: #98a29f;
+    --petrichor-accent: #74bda9;
+    --petrichor-accent-soft: rgba(116, 189, 169, 0.16);
+    --petrichor-danger: #f2907d;
+    --petrichor-focus: #8fd4c0;
+
+    --petrichor-priority-low: #79837f;
+    --petrichor-priority-medium: #86aec4;
+    --petrichor-priority-high: #d1a75c;
+    --petrichor-priority-urgent: #ec8f65;
+
+    /* Shadows carry almost no weight on a dark ground; lean on them less. */
+    --petrichor-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --petrichor-shadow-drag: 0 6px 18px rgba(0, 0, 0, 0.55),
+      0 2px 4px rgba(0, 0, 0, 0.4);
+
+    --petrichor-control-border: #777f7d;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --petrichor-transition: 0s;
+  }
+}

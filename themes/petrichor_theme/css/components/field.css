@@ -1,0 +1,44 @@
+/**
+ * @file
+ * Visual styles for fields.
+ *
+ * Entity view pages are a list of label/value pairs. The label is metadata, so
+ * it is small and muted; the value is the content and keeps body colour.
+ */
+
+.field {
+  margin-bottom: var(--petrichor-space-3);
+}
+
+.field__label {
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.field--label-inline .field__label,
+.field--label-inline .field__items {
+  float: left; /* LTR */
+}
+.field--label-inline .field__label,
+.field--label-inline > .field__item,
+.field--label-inline .field__items {
+  padding-right: 0.5em;
+}
+[dir="rtl"] .field--label-inline .field__label,
+[dir="rtl"] .field--label-inline .field__items {
+  padding-right: 0;
+  padding-left: 0.5em;
+}
+.field--label-inline .field__label::after {
+  content: ":";
+}
+
+/* Inline labels sit on the baseline of their value, so they stay sentence-cased
+   rather than inheriting the uppercase block treatment above. */
+.field--label-inline .field__label {
+  letter-spacing: normal;
+  text-transform: none;
+}

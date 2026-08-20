@@ -1,0 +1,38 @@
+{% extends "block.html.twig" %}
+{#
+/**
+ * @file
+ * Theme override for a branding block.
+ *
+ * Each branding element variable (logo, name, slogan) is only available if
+ * enabled in the block configuration. The theme's own block config ships with
+ * only the name switched on — a logo and a slogan in a header a single user
+ * looks at all day are decoration that costs vertical space.
+ *
+ * Class names are the `site-branding__*` set rather than Starterkit's
+ * `.site-logo` / `.site-name` / `.site-slogan`, matching what css/layout/page.css
+ * targets. Olivero's `__inner` and `__text` wrapper divs are deliberately not
+ * emitted: nothing styles them, and the block wrapper is already a flex parent.
+ *
+ * Available variables:
+ * - site_logo: Logo for site as defined in Appearance or theme settings.
+ * - site_name: Name for site as defined in Site information settings.
+ * - site_slogan: Slogan for site as defined in Site information settings.
+ */
+#}
+{% set attributes = attributes.addClass('site-branding') %}
+{% block content %}
+  {% if site_logo %}
+    <a href="{{ path('<front>') }}" rel="home" class="site-branding__logo">
+      <img src="{{ site_logo }}" alt="{{ 'Home'|t }}" fetchpriority="high" />
+    </a>
+  {% endif %}
+  {% if site_name %}
+    <div class="site-branding__name">
+      <a href="{{ path('<front>') }}" rel="home">{{ site_name }}</a>
+    </div>
+  {% endif %}
+  {% if site_slogan %}
+    <div class="site-branding__slogan">{{ site_slogan }}</div>
+  {% endif %}
+{% endblock %}

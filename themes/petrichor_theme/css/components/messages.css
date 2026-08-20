@@ -1,0 +1,99 @@
+/**
+ * @file
+ * Styles for system messages.
+ *
+ * Three states, each carrying an icon as well as a colour, so the state is
+ * still readable without hue. The colours are pulled from existing tokens
+ * rather than invented: status reuses the accent (already green), warning
+ * reuses the high-priority ochre, error is the one place besides an overdue
+ * date where red is allowed to appear.
+ *
+ * The generated stable9 styles hard-coded six greens, ambers and reds and a
+ * box-shadow "bar" that inverted badly on a dark ground; this replaces them
+ * with a real border-inline-start so RTL and dark mode both fall out for free.
+ */
+
+.messages {
+  padding: var(--petrichor-space-3) var(--petrichor-space-3)
+    var(--petrichor-space-3) 2.75rem;
+  border: 1px solid var(--petrichor-border);
+  border-inline-start: 3px solid var(--petrichor-text-muted);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  position: relative;
+}
+
+/* The icon is masked rather than drawn, so it takes a token colour instead of
+   the fill baked into core's SVG. Those fills were 2.3:1 on this surface —
+   under the 3:1 floor for a non-text indicator — and had no dark variant, so
+   the status icon was the one part of a message that could not be trusted to
+   be visible. One file now serves both schemes. */
+.messages::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 1.05rem;
+  inset-inline-start: var(--petrichor-space-3);
+  inline-size: 16px;
+  block-size: 16px;
+  background-color: var(--petrichor-text-muted);
+  mask-repeat: no-repeat;
+  mask-size: 16px 16px;
+}
+
+[dir="rtl"] .messages {
+  padding-right: 2.75rem;
+  padding-left: var(--petrichor-space-3);
+  text-align: right;
+}
+
+.messages + .messages {
+  margin-top: var(--petrichor-space-3);
+}
+
+.messages__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.messages__item {
+  margin: 0;
+}
+
+.messages__item + .messages__item {
+  margin-top: var(--petrichor-space-2);
+}
+
+.messages--status {
+  border-inline-start-color: var(--petrichor-accent);
+}
+
+.messages--status::before {
+  background-color: var(--petrichor-accent);
+  mask-image: url(../../images/icons/check.svg);
+}
+
+.messages--warning {
+  border-inline-start-color: var(--petrichor-priority-high);
+}
+
+.messages--warning::before {
+  background-color: var(--petrichor-priority-high);
+  mask-image: url(../../images/icons/warning.svg);
+}
+
+.messages--error {
+  border-inline-start-color: var(--petrichor-danger);
+}
+
+.messages--error::before {
+  background-color: var(--petrichor-danger);
+  mask-image: url(../../images/icons/error.svg);
+}
+
+.messages--error p.error {
+  color: var(--petrichor-danger);
+}

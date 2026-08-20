@@ -1,0 +1,61 @@
+/**
+ * @file
+ * Styles for link buttons and action links.
+ *
+ * "Add task", "Add project" and friends. These are the only always-visible
+ * calls to action on a collection page, so they get the outlined button
+ * treatment — filled would make them the loudest thing above a table of work.
+ */
+
+.action-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petrichor-space-2);
+  margin: 0 0 var(--petrichor-space-4);
+  padding: 0;
+  list-style: none;
+}
+[dir="rtl"] .action-links {
+  /* This is required to win over specificity of [dir="rtl"] ul */
+  margin-right: 0;
+}
+.action-links li {
+  margin: 0;
+}
+
+.button-action {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  border: 1px solid var(--petrichor-control-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface-raised);
+  color: var(--petrichor-text);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: background-color var(--petrichor-transition),
+    border-color var(--petrichor-transition);
+}
+
+.button-action:hover {
+  border-color: var(--petrichor-text-muted);
+  background-color: var(--petrichor-surface);
+  color: var(--petrichor-text);
+}
+
+.button-action::before {
+  margin-left: -0.1em; /* LTR */
+  padding-right: 0.3em; /* LTR */
+  content: "+";
+  color: var(--petrichor-accent);
+  font-weight: 700;
+}
+[dir="rtl"] .button-action::before {
+  margin-right: -0.1em;
+  margin-left: 0;
+  padding-right: 0;
+  padding-left: 0.3em;
+}

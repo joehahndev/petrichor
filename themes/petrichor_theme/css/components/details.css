@@ -1,0 +1,41 @@
+/**
+ * @file
+ * Collapsible details.
+ *
+ * A closed <details> is the cheapest way to keep a form low-density, so it is
+ * worth making it read as a real affordance rather than a grey box.
+ *
+ * @see collapse.js
+ */
+
+details {
+  margin-top: var(--petrichor-space-4);
+  margin-bottom: var(--petrichor-space-4);
+  border: 1px solid var(--petrichor-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface);
+}
+
+details > .details-wrapper {
+  padding: 0 var(--petrichor-space-3) var(--petrichor-space-3);
+}
+
+summary {
+  display: flex;
+  align-items: center;
+  min-block-size: 2.75rem; /* 44px minimum touch target. */
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  color: var(--petrichor-text);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+summary:hover {
+  color: var(--petrichor-accent);
+}
+
+.details-description {
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+}

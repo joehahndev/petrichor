@@ -1,0 +1,57 @@
+name: Petrichor
+type: theme
+'base theme': false
+description: 'Calm, low-density front end for the Petrichor PM workspace. Optional — the modules render correctly without it.'
+core_version_requirement: ^11
+generator: 'starterkit_theme:11.4.4'
+
+# core/normalize is a dependency of petrichor_theme/base rather than an entry
+# here. Both it and css/base/tokens.css land in the CSS_BASE group, and within a
+# group Drupal orders by weight then by the order libraries were added — listing
+# normalize alongside base made "does the token block outrank the reset?" depend
+# on that ordering. As a declared dependency it is unambiguously first.
+libraries:
+  - petrichor_theme/base
+  - petrichor_theme/messages
+
+# Six regions, and the shortness of the list is the point.
+#
+# Every region is a place clutter accumulates, and this theme exists because the
+# board was drowning in chrome. Deliberately absent, with reasons:
+# - secondary_menu: one navigation is the budget.
+# - help:           admin help text on a workspace screen is noise. Core's help
+#                   block has nowhere to land here, which is the intent.
+# - sidebar_first / sidebar_second: the board is a horizontally scrolling grid
+#                   of columns. A sidebar either squeezes it or scrolls away
+#                   from it.
+# - content_above / content_below / hero / social: places to put things that
+#                   should not exist.
+#
+# `header` is first, which makes it the theme's default region — where core
+# drops a block whose configured region this theme does not have
+# (\Drupal\Core\Extension\Theme::getDefaultRegion() returns the first visible
+# region). Deliberate: a misplaced block should be visible and obviously wrong
+# rather than silently swallowed at the bottom of the page.
+regions:
+  header: Header
+  primary_menu: 'Primary menu'
+  breadcrumb: Breadcrumb
+  highlighted: Highlighted
+  content: Content
+  footer: Footer
+
+libraries-extend:
+  user/drupal.user:
+    - petrichor_theme/user
+  core/drupal.dropbutton:
+    - petrichor_theme/dropbutton
+  core/drupal.dialog:
+    - petrichor_theme/dialog
+  file/drupal.file:
+    - petrichor_theme/file
+  core/drupal.item-list:
+    - petrichor_theme/item-list
+  core/drupal.progress:
+    - petrichor_theme/progress
+  core/drupal.tablesort:
+    - petrichor_theme/drupal.tablesort

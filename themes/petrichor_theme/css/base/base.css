@@ -1,0 +1,288 @@
+/**
+ * @file
+ * Element defaults: typography, rhythm, links, tables, code, focus.
+ *
+ * Loaded after tokens.css and core/normalize. Everything here is element-level
+ * or a core utility class; component chrome lives in css/components/.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Respect the user's browser font size; the type scale is all rem. */
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--petrichor-bg);
+  color: var(--petrichor-text);
+  font-family: var(--petrichor-font);
+  font-size: var(--petrichor-text-base);
+  line-height: var(--petrichor-line-height);
+  /* Grayscale antialiasing keeps light text on the dark palette from bulking. */
+  -webkit-font-smoothing: antialiased;
+}
+
+/**
+ * Headings.
+ *
+ * Deliberately small. The page title on a board is a label, not a banner — the
+ * board itself is the content, and an oversized h1 pushes it below the fold and
+ * reads as CMS chrome. Weight and spacing carry the hierarchy instead of size.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 var(--petrichor-space-3);
+  color: var(--petrichor-text);
+  font-weight: 600;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--petrichor-text-xl);
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  margin-top: var(--petrichor-space-5);
+  font-size: var(--petrichor-text-lg);
+}
+
+h3 {
+  margin-top: var(--petrichor-space-4);
+  font-size: var(--petrichor-text-base);
+}
+
+h4,
+h5,
+h6 {
+  margin-top: var(--petrichor-space-4);
+  font-size: var(--petrichor-text-sm);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--petrichor-text-muted);
+}
+
+/* First heading in a flow region should not push the region open. */
+h1:first-child,
+h2:first-child,
+h3:first-child {
+  margin-top: 0;
+}
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+pre,
+figure {
+  margin: 0 0 var(--petrichor-space-3);
+}
+
+/* A comfortable measure for prose only. Lists of links and layout wrappers are
+   excluded because capping them strands controls in a narrow column. */
+p,
+blockquote,
+dd {
+  max-inline-size: var(--petrichor-measure);
+}
+
+ul,
+ol {
+  padding-inline-start: var(--petrichor-space-4);
+}
+
+li {
+  margin-block-end: var(--petrichor-space-1);
+}
+
+blockquote {
+  padding-inline-start: var(--petrichor-space-3);
+  border-inline-start: 2px solid var(--petrichor-border);
+  color: var(--petrichor-text-muted);
+}
+
+hr {
+  height: 0;
+  margin: var(--petrichor-space-5) 0;
+  border: 0;
+  border-block-start: 1px solid var(--petrichor-border);
+}
+
+img,
+svg,
+video {
+  max-inline-size: 100%;
+  height: auto;
+}
+
+/**
+ * Links.
+ *
+ * Underlined by default: colour alone must never be the only way to spot a
+ * link. The offset keeps the rule off the descenders.
+ */
+a {
+  color: var(--petrichor-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+  transition: color var(--petrichor-transition);
+}
+
+a:hover {
+  color: var(--petrichor-text);
+  text-decoration-thickness: 2px;
+}
+
+/**
+ * Focus.
+ *
+ * One ring, everywhere, driven by one token. `:focus-visible` only, so we never
+ * strip a UA outline we have not replaced — a browser without :focus-visible
+ * support simply keeps its own default.
+ */
+:focus-visible {
+  outline: 3px solid var(--petrichor-focus);
+  /* The gap reads as a halo, which keeps the ring legible where it lands on a
+     surface close to the focus colour. Outline already follows the element's
+     own border-radius, so nothing here needs to know about shape. */
+  outline-offset: 2px;
+}
+
+/* The skip link is the first tab stop on every page; make it unmissable. */
+.skip-link:focus,
+.visually-hidden.focusable:focus {
+  z-index: 100;
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  background-color: var(--petrichor-surface-raised);
+  color: var(--petrichor-text);
+  box-shadow: var(--petrichor-shadow-drag);
+  border-radius: 0 0 var(--petrichor-radius) 0;
+}
+
+::selection {
+  background-color: var(--petrichor-accent-soft);
+  color: var(--petrichor-text);
+}
+
+/**
+ * Code.
+ */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--petrichor-font-mono);
+  font-size: 0.9em;
+}
+
+code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-accent-soft);
+}
+
+pre {
+  overflow-x: auto;
+  padding: var(--petrichor-space-3);
+  border: 1px solid var(--petrichor-border);
+  border-radius: var(--petrichor-radius);
+  background-color: var(--petrichor-surface);
+}
+
+pre code {
+  padding: 0;
+  background: none;
+}
+
+/**
+ * Tables.
+ *
+ * Entity collections are bare tables until Views replace them, so this is a
+ * primary surface rather than an afterthought. Rules are horizontal only:
+ * vertical grid lines add ink without adding information.
+ */
+table {
+  inline-size: 100%;
+  margin: 0 0 var(--petrichor-space-4);
+  border-collapse: collapse;
+  font-size: var(--petrichor-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+caption {
+  margin-block-end: var(--petrichor-space-2);
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  text-align: start;
+}
+
+th {
+  color: var(--petrichor-text-muted);
+  font-size: var(--petrichor-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: start;
+  text-transform: uppercase;
+}
+
+th,
+td {
+  padding: var(--petrichor-space-2) var(--petrichor-space-3);
+  border-block-end: 1px solid var(--petrichor-border);
+  vertical-align: top;
+}
+
+th:first-child,
+td:first-child {
+  padding-inline-start: 0;
+}
+
+th:last-child,
+td:last-child {
+  padding-inline-end: 0;
+}
+
+tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+/* No zebra striping: a hover row is enough to track a line, and stripes are
+   permanent visual noise on a page that gets looked at all day. */
+tbody tr {
+  transition: background-color var(--petrichor-transition);
+}
+
+tbody tr:hover {
+  background-color: var(--petrichor-surface);
+}
+
+/**
+ * Motion.
+ *
+ * --petrichor-transition already resolves to 0s under reduced motion, so this
+ * only has to catch things that are not token-driven.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

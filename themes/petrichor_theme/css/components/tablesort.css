@@ -1,0 +1,18 @@
+/**
+ * @file
+ * Table sort indicator.
+ */
+
+th.is-active img {
+  display: inline;
+}
+
+th.is-active a {
+  color: var(--petrichor-text);
+}
+
+/* Sorted column: a tint rather than the generated #ddd, which was invisible in
+   dark mode and heavy in light. The header arrow is the primary signal. */
+td.is-active {
+  background-color: var(--petrichor-surface);
+}

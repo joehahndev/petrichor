@@ -1,0 +1,35 @@
+/**
+ * @file
+ * Style another element as a link.
+ *
+ * button.link has to win over the element selectors in button.css, which give
+ * every other <button> a border, a fill and a 44px block size.
+ */
+
+button.link {
+  display: inline;
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--petrichor-accent);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+button.link:hover {
+  border: 0;
+  background: transparent;
+  color: var(--petrichor-text);
+}
+
+label button.link {
+  font-weight: 600;
+}
