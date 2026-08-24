@@ -24,8 +24,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * single JSON response; batching is not supported. GET opens an SSE stream
  * that sends notifications/tools/list_changed when the composed tool set
  * moves (see ToolsGenerationTracker) and otherwise says nothing — this
- * server has no other server-initiated message to send yet. Clients should
- * authenticate with basic auth (enable the core basic_auth module).
+ * server has no other server-initiated message to send yet. That stream is
+ * opt-in and off by default; see DEFAULT_STREAM_ENABLED for why. Clients
+ * should authenticate with basic auth (enable the core basic_auth module).
  */
 final class McpController extends ControllerBase {
 
@@ -46,6 +47,31 @@ final class McpController extends ControllerBase {
    * How often the open stream re-checks the generation counter.
    */
   protected const DEFAULT_POLL_SECONDS = 2;
+
+  /**
+   * Whether GET /mcp offers an SSE stream at all.
+   *
+   * Off by default because the cost is structural, not incidental: one open
+   * stream occupies one PHP-FPM worker for its entire life, so a site with N
+   * concurrent MCP clients needs N workers doing nothing but sleeping, on top
+   * of the workers serving real requests. A pool of 8 — ddev's default, and
+   * not unusual in production — is exhausted by 8 connected clients, at which
+   * point every other request on the site, the UI included, queues until
+   * something gives up. Bounding each connection (DEFAULT_STREAM_SECONDS)
+   * caps how long one worker is held, but not how many are held at once, and
+   * a spec-compliant client reconnects immediately on close.
+   *
+   * What that buys is a single notification, tools/list_changed, which fires
+   * only when the composed tool set moves — a module install or uninstall.
+   * On a site whose module list is stable, which is most of them, it is a
+   * permanent worker per client for an event that may never fire.
+   *
+   * Enable it where the worker pool is sized for the expected client count:
+   * @code
+   * $settings['petrichor_mcp_stream_enabled'] = TRUE;
+   * @endcode
+   */
+  protected const DEFAULT_STREAM_ENABLED = FALSE;
 
   public function __construct(
     protected McpToolRegistry $tools,
@@ -89,9 +115,11 @@ final class McpController extends ControllerBase {
         'initialize' => [
           'protocolVersion' => self::PROTOCOL_VERSION,
           'capabilities' => [
-            // listChanged: TRUE is a promise, not decoration — GET /mcp
-            // actually sends the notification. See stream() below.
-            'tools' => ['listChanged' => TRUE],
+            // listChanged is a promise, not decoration, so it tracks whether
+            // the stream is actually being served: a client that holds a
+            // connection open on the strength of a flag with nothing behind
+            // it is worse off than one that never saw the flag. See stream().
+            'tools' => ['listChanged' => $this->streamEnabled()],
             'resources' => new \stdClass(),
             'prompts' => new \stdClass(),
           ],
@@ -130,6 +158,16 @@ final class McpController extends ControllerBase {
   }
 
   /**
+   * Whether this site serves the GET /mcp SSE stream.
+   *
+   * Read in two places that have to agree: the capability advertised at
+   * initialize, and the endpoint that would honour it.
+   */
+  protected function streamEnabled(): bool {
+    return (bool) Settings::get('petrichor_mcp_stream_enabled', self::DEFAULT_STREAM_ENABLED);
+  }
+
+  /**
    * Opens an SSE stream and pushes tools/list_changed when the tool set moves.
    *
    * This is a poll loop over one State value, not a push from the code that
@@ -140,10 +178,22 @@ final class McpController extends ControllerBase {
    * mechanism that fits the infrastructure actually here.
    *
    * The stream closes itself after DEFAULT_STREAM_SECONDS regardless of
-   * whether anything changed, so a connection can never pin a worker
-   * indefinitely. A spec-compliant client reconnects on its own.
+   * whether anything changed, so no single connection pins a worker
+   * indefinitely. That bounds one connection, not the pool: N connected
+   * clients still occupy N workers continuously, because a spec-compliant
+   * client reconnects as soon as the stream closes. Sizing the worker pool
+   * above the expected client count is therefore a requirement of turning
+   * this on, not a tuning detail — see DEFAULT_STREAM_ENABLED.
    */
-  public function stream(): StreamedResponse {
+  public function stream(): Response {
+    if (!$this->streamEnabled()) {
+      // What the Streamable HTTP transport specifies for a server that does
+      // not offer SSE on GET. A spec-compliant client reads it as "POST
+      // only" and stops asking, rather than treating it as a failure and
+      // retrying — which is the difference between a disabled feature and
+      // a client hammering a dead endpoint.
+      return new Response('', 405, ['Allow' => 'POST']);
+    }
     $seen = $this->toolsGeneration->current();
     $stream_seconds = (int) Settings::get('petrichor_mcp_stream_seconds', self::DEFAULT_STREAM_SECONDS);
     $poll_seconds = (int) Settings::get('petrichor_mcp_poll_seconds', self::DEFAULT_POLL_SECONDS);

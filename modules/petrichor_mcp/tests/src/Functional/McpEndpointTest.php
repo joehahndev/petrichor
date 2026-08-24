@@ -46,13 +46,29 @@ class McpEndpointTest extends BrowserTestBase {
   protected function setUp(): void {
     parent::setUp();
     $this->url = $this->buildUrl('/mcp');
-    // GET /mcp's default 55s stream would make testStreamSendsListChanged()
+    // The stream ships off (see McpController::DEFAULT_STREAM_ENABLED), so
+    // the tests that exercise it have to turn it on; testStreamDisabled*()
+    // below covers the shipped default instead.
+    //
+    // GET /mcp's default 55s stream would also make the list_changed test
     // one of the slowest tests in the suite for no reason — the loop's
     // correctness does not depend on how long it runs.
     $this->writeSettings([
       'settings' => [
+        'petrichor_mcp_stream_enabled' => (object) ['value' => TRUE, 'required' => TRUE],
         'petrichor_mcp_stream_seconds' => (object) ['value' => 4, 'required' => TRUE],
         'petrichor_mcp_poll_seconds' => (object) ['value' => 1, 'required' => TRUE],
+      ],
+    ]);
+  }
+
+  /**
+   * Turns the stream back off, restoring the shipped default.
+   */
+  protected function disableStream(): void {
+    $this->writeSettings([
+      'settings' => [
+        'petrichor_mcp_stream_enabled' => (object) ['value' => FALSE, 'required' => TRUE],
       ],
     ]);
   }
@@ -258,6 +274,41 @@ class McpEndpointTest extends BrowserTestBase {
       'method' => 'initialize',
     ]);
     $this->assertTrue($body['result']['capabilities']['tools']['listChanged'] ?? NULL);
+  }
+
+  /**
+   * With the stream off, GET /mcp is 405 rather than an open connection.
+   *
+   * 405 is the Streamable HTTP transport's answer for a server that only
+   * speaks POST. It matters that this is not 404 or 500: a client reads 405
+   * as "this server has no SSE stream" and stops asking, where an error
+   * status invites it to retry an endpoint that will never work.
+   */
+  public function testStreamDisabledReturnsMethodNotAllowed(): void {
+    $this->disableStream();
+    $response = $this->getHttpClient()->get($this->url, [
+      'http_errors' => FALSE,
+      'auth' => $this->agent(['access petrichor mcp', 'view petrichor content'])['auth'],
+    ]);
+    $this->assertSame(405, $response->getStatusCode());
+    $this->assertSame('POST', $response->getHeaderLine('Allow'));
+  }
+
+  /**
+   * With the stream off, initialize stops promising listChanged.
+   *
+   * The flag and the endpoint have to move together — advertising a
+   * notification this server will never send is the failure mode that
+   * testInitializeAdvertisesToolsListChanged() guards from the other side.
+   */
+  public function testStreamDisabledWithdrawsListChanged(): void {
+    $this->disableStream();
+    [, $body] = $this->post($this->agent(['access petrichor mcp', 'view petrichor content']), [
+      'jsonrpc' => '2.0',
+      'id' => 1,
+      'method' => 'initialize',
+    ]);
+    $this->assertFalse($body['result']['capabilities']['tools']['listChanged'] ?? NULL);
   }
 
   /**
