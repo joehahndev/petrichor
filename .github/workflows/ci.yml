@@ -1,0 +1,25 @@
+name: CI
+
+# GitHub mirror of the drupal.org project. drupal.org's GitLab pipeline
+# (.gitlab-ci.yml) is the pipeline of record; this one runs the same three
+# checks through the reusable drupal-module-ci workflow so the mirror carries
+# its own green badge.
+on:
+  push:
+    branches: [main, 1.0.x]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  drupal:
+    uses: joehahndev/drupal-module-ci/.github/workflows/drupal.yml@v1
+    with:
+      install-map: |
+        .:web/modules/custom/petrichor
+      # Matches phpstan.neon. Raising it is a deliberate change, not a CI
+      # default drifting.
+      phpstan-level: '1'
+      # core_version_requirement is ^11.1; the entity attributes the suite
+      # uses do not exist in Drupal 10.
+      drupal-versions: '["^11.4"]'
+      composer-require: league/commonmark drupal/key_auth

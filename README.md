@@ -1,5 +1,7 @@
 # Petrichor
 
+> **Where this lives.** The project of record is [drupal.org/project/petrichor](https://www.drupal.org/project/petrichor): issues, releases and the GitLab pipeline. [github.com/joehahndev/petrichor](https://github.com/joehahndev/petrichor) is a read-only mirror of the same history.
+
 **A place your AI assistant can do real work — and leave a record you can
 check.**
 
