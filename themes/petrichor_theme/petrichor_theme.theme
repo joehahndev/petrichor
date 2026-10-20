@@ -30,11 +30,18 @@ declare(strict_types=1);
  * `root_path`, which is empty on the front page — so the moment a recipe sets
  * /pm as the front page, `path-pm` disappears and any CSS hanging off it
  * silently stops applying. The route path does not move.
+ *
+ * A function rather than a global constant, which DrupalPractice rejects.
+ *
+ * @return array<string, string>
+ *   Section name => route path prefix.
  */
-const PETRICHOR_THEME_WORKSPACE_SECTIONS = [
-  'pm' => '/pm',
-  'wiki' => '/wiki',
-];
+function _petrichor_theme_workspace_sections(): array {
+  return [
+    'pm' => '/pm',
+    'wiki' => '/wiki',
+  ];
+}
 
 /**
  * Resolves the current route to a workspace section.
@@ -44,7 +51,7 @@ const PETRICHOR_THEME_WORKSPACE_SECTIONS = [
  */
 function _petrichor_theme_workspace_section(): ?string {
   $path = \Drupal::routeMatch()->getRouteObject()?->getPath() ?? '';
-  foreach (PETRICHOR_THEME_WORKSPACE_SECTIONS as $section => $prefix) {
+  foreach (_petrichor_theme_workspace_sections() as $section => $prefix) {
     if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
       return $section;
     }

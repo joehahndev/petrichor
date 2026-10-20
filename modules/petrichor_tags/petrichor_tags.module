@@ -34,16 +34,23 @@ function petrichor_tags_help(string $route_name, RouteMatchInterface $route_matc
 /**
  * Entity types this module tags, and the form-display weight each gets.
  *
- * A weight per type rather than one constant: each entity already has its
+ * A weight per type rather than one value: each entity already has its
  * own field layout (Memory's fields end around weight 10, Task's around 14),
  * and tags should land after an entity's own fields wherever that entity
  * puts them, not at a weight one entity picked for itself.
+ *
+ * A function rather than a global constant, which DrupalPractice rejects.
+ *
+ * @return array<string, int>
+ *   Entity type id => form-display weight for the tags field.
  */
-const PETRICHOR_TAGS_TARGET_ENTITY_TYPES = [
-  'petrichor_memory' => 20,
-  'petrichor_wiki_page' => 20,
-  'petrichor_task' => 20,
-];
+function _petrichor_tags_target_entity_types(): array {
+  return [
+    'petrichor_memory' => 20,
+    'petrichor_wiki_page' => 20,
+    'petrichor_task' => 20,
+  ];
+}
 
 /**
  * Implements hook_entity_base_field_info().
@@ -54,7 +61,7 @@ const PETRICHOR_TAGS_TARGET_ENTITY_TYPES = [
  */
 function petrichor_tags_entity_base_field_info(EntityTypeInterface $entity_type): array {
   $fields = [];
-  if (!array_key_exists($entity_type->id(), PETRICHOR_TAGS_TARGET_ENTITY_TYPES)) {
+  if (!array_key_exists($entity_type->id(), _petrichor_tags_target_entity_types())) {
     return $fields;
   }
 
@@ -71,7 +78,7 @@ function petrichor_tags_entity_base_field_info(EntityTypeInterface $entity_type)
     ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
     ->setDisplayOptions('form', [
       'type' => 'entity_reference_autocomplete_tags',
-      'weight' => PETRICHOR_TAGS_TARGET_ENTITY_TYPES[$entity_type->id()],
+      'weight' => _petrichor_tags_target_entity_types()[$entity_type->id()],
     ])
     ->setDisplayConfigurable('form', TRUE)
     ->setDisplayConfigurable('view', TRUE);

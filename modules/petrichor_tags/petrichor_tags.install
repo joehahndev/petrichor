@@ -16,7 +16,7 @@ declare(strict_types=1);
  * keyvalue store. This module does not do that removal itself: by the time
  * this hook runs, ModuleInstaller::install() has already auto-installed
  * this module's own entity_reference 'tags' field onto every entity type
- * that defines it in code (see PETRICHOR_TAGS_TARGET_ENTITY_TYPES in the
+ * that defines it in code (see _petrichor_tags_target_entity_types() in the
  * .module file) as an unconditional step that runs before hook_install() —
  * if a same-named field with data were still installed at that moment, that
  * auto-step would silently overwrite the "already installed" bookkeeping
